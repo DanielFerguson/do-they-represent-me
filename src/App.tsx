@@ -3,6 +3,14 @@ import { Fragment, useEffect, useState } from 'react'
 import { people } from './lib/people'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Combobox } from '@/components/ui/combobox'
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 
 type Person = {
   id: number,
@@ -36,28 +44,9 @@ type PersonDetails = {
   policy_comparisons: PolicyComparison[]
 }
 
-import { Button } from '@/components/ui/button'; // Added import
-import { Progress } from '@/components/ui/progress'; // Added import
-
 type UserVote = 'approve' | 'reject' | 'unsure' | null; // Type for user votes
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion" // Added for breakdown
-
-// Define a type for the detailed alignment results
-// type AlignmentResult = {
-//   score: number;
-//   comparableVotes: number;
-//   totalAnswered: number;
-//   agreedPolicies: Policy[];
-//   disagreedPolicies: Policy[];
-//   userUnsurePolicies: { policy: Policy; repAgrees: boolean }[];
-// };
-
+const THEYVOTEFORYOU_API_KEY = 'V8Dwp5hntNFnts9kncuE'
 
 function App() {
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
@@ -88,7 +77,7 @@ function App() {
     setAlignmentResult(null); // Clear previous results
 
     // Fetch the person's details
-    fetch(`/api/get_policies?id=${selectedPerson.id}`)
+    fetch(`https://theyvoteforyou.org.au/api/v1/people/${selectedPerson.id}.json?key=${THEYVOTEFORYOU_API_KEY}`)
       .then((response) => response.json())
       .then((data: PersonDetails) => {
         // --- Sort policies by last_edited_at descending ---
