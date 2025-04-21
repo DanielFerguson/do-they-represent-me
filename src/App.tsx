@@ -85,6 +85,8 @@ function App() {
             // ISO 8601 date strings can be compared lexicographically for recency.
             return b.policy.last_edited_at.localeCompare(a.policy.last_edited_at);
           })
+          .filter((comparison) => comparison.policy.provisional === false) // Only show non-provisional policies.
+          .filter((comparison) => comparison.voted) // Only show policies that have been voted on.
           .slice(0, 50); // Limit the number of policies presented to the user.
 
         const sortedData = { ...data, policy_comparisons: sortedComparisons };
@@ -206,7 +208,7 @@ function App() {
       }
 
       // Note: The API represents agreement/disagreement with "100" or "0.0" strings.
-      const repAgreesWithPolicy = parseFloat(comparison.agreement) === 100;
+      const repAgreesWithPolicy = parseFloat(comparison.agreement) >= 60;
 
       if (userVote === 'approve' || userVote === 'reject') {
         // Only count towards score if both user and rep have a clear stance.
