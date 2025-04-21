@@ -351,7 +351,7 @@ function App() {
                   </h3>
                   <Progress value={((alignmentResult.totalAnswered / totalPolicies) * 100) + 1} className="w-full mb-4" />
                   <p className="text-center">
-                    Based on the {alignmentResult.totalAnswered} policies you voted on,
+                    Based on the {alignmentResult.totalAnswered + 1} policies you voted on,
                     you agreed with {selectedPerson?.latest_member.name.first} {selectedPerson?.latest_member.name.last} on{' '}
                     <span className="font-bold text-xl">{alignmentResult.score}%</span> of the {alignmentResult.comparableVotes} policies where you both expressed a clear stance (Approve/Reject).
                   </p>
@@ -367,16 +367,33 @@ function App() {
                             Agreements ({alignmentResult.agreedPolicies.length})
                           </AccordionTrigger>
                           <AccordionContent>
-                            <ul className="list-disc pl-5 space-y-1 text-sm">
-                              {alignmentResult.agreedPolicies.map(({ policy, userVote }) => (
-                                <li key={policy.id}>
-                                  {policy.name}
-                                  <span className="text-xs text-muted-foreground ml-2">
-                                    {userVote === 'approve' ? '(You both approved)' : '(You both rejected)'}
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
+                            {/* You both approved */}
+                            {alignmentResult.agreedPolicies.some(({ userVote }) => userVote === 'approve') && (
+                              <>
+                                <h5 className="font-medium mb-2">You both approved:</h5>
+                                <ul className="list-disc pl-5 space-y-1 text-sm mb-4">
+                                  {alignmentResult.agreedPolicies
+                                    .filter(({ userVote }) => userVote === 'approve')
+                                    .map(({ policy }) => (
+                                      <li key={policy.id}>{policy.name}</li>
+                                    ))}
+                                </ul>
+                              </>
+                            )}
+
+                            {/* You both rejected */}
+                            {alignmentResult.agreedPolicies.some(({ userVote }) => userVote === 'reject') && (
+                              <>
+                                <h5 className="font-medium mb-2">You both rejected:</h5>
+                                <ul className="list-disc pl-5 space-y-1 text-sm">
+                                  {alignmentResult.agreedPolicies
+                                    .filter(({ userVote }) => userVote === 'reject')
+                                    .map(({ policy }) => (
+                                      <li key={policy.id}>{policy.name}</li>
+                                    ))}
+                                </ul>
+                              </>
+                            )}
                           </AccordionContent>
                         </AccordionItem>
                       )}
@@ -388,19 +405,33 @@ function App() {
                             Disagreements ({alignmentResult.disagreedPolicies.length})
                           </AccordionTrigger>
                           <AccordionContent>
-                            <ul className="list-disc pl-5 space-y-1 text-sm">
-                              {alignmentResult.disagreedPolicies.map(({ policy, userVote }) => (
-                                <li key={policy.id}>
-                                  {policy.name}
-                                  <span className="text-xs text-muted-foreground ml-2">
-                                    {userVote === 'approve' // Implies repAgrees is false in disagreement case
-                                      ? `(You Approved, ${repLastName} rejected)`
-                                      : `(You Rejected, ${repLastName} approved)` // Implies repAgrees is true in disagreement case
-                                    }
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
+                            {/* You approved, they rejected */}
+                            {alignmentResult.disagreedPolicies.some(({ userVote }) => userVote === 'approve') && (
+                              <>
+                                <h5 className="font-medium mb-2">You approved, {repLastName} rejected:</h5>
+                                <ul className="list-disc pl-5 space-y-1 text-sm mb-4">
+                                  {alignmentResult.disagreedPolicies
+                                    .filter(({ userVote }) => userVote === 'approve')
+                                    .map(({ policy }) => (
+                                      <li key={policy.id}>{policy.name}</li>
+                                    ))}
+                                </ul>
+                              </>
+                            )}
+
+                            {/* You rejected, they approved */}
+                            {alignmentResult.disagreedPolicies.some(({ userVote }) => userVote === 'reject') && (
+                              <>
+                                <h5 className="font-medium mb-2">You rejected, {repLastName} approved:</h5>
+                                <ul className="list-disc pl-5 space-y-1 text-sm">
+                                  {alignmentResult.disagreedPolicies
+                                    .filter(({ userVote }) => userVote === 'reject')
+                                    .map(({ policy }) => (
+                                      <li key={policy.id}>{policy.name}</li>
+                                    ))}
+                                </ul>
+                              </>
+                            )}
                           </AccordionContent>
                         </AccordionItem>
                       )}
