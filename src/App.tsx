@@ -121,12 +121,12 @@ function App() {
   };
 
   // Allows the user to view results before voting on all policies.
-  const handleShowResults = () => {
-    if (totalPolicies > 0) {
-      setAlignmentResult(calculateAlignment());
-      setShowResults(true);
-    }
-  }
+  // const handleShowResults = () => {
+  //   if (totalPolicies > 0) {
+  //     setAlignmentResult(calculateAlignment());
+  //     setShowResults(true);
+  //   }
+  // }
 
   // Handles navigation back during voting or from the results screen.
   const handleUnvote = () => {
@@ -381,7 +381,7 @@ function App() {
                           </AccordionTrigger>
                           <AccordionContent>
                             <ul className="list-disc pl-5 space-y-1 text-sm">
-                              {alignmentResult.disagreedPolicies.map(({ policy, userVote, repAgrees }) => (
+                              {alignmentResult.disagreedPolicies.map(({ policy, userVote }) => (
                                 <li key={policy.id}>
                                   {policy.name}
                                   <span className="text-xs text-muted-foreground ml-2">
