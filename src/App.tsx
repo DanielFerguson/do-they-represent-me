@@ -88,7 +88,7 @@ function App() {
     setAlignmentResult(null); // Clear previous results
 
     // Fetch the person's details
-    fetch(`/api/handler?id=${selectedPerson.id}`)
+    fetch(`/api/get_policies?id=${selectedPerson.id}`)
       .then((response) => response.json())
       .then((data: PersonDetails) => {
         // --- Sort policies by last_edited_at descending ---
