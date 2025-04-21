@@ -10,7 +10,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { RotateCw } from 'lucide-react';
+import { RotateCw, ThumbsDownIcon, ThumbsUpIcon } from 'lucide-react';
 
 type Person = {
   id: number,
@@ -313,14 +313,20 @@ function App() {
                   <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-4 pt-4 border-t mt-4">
                     {/* Voting Actions (Reject/Unsure/Approve) */}
                     <div className="flex w-full sm:w-auto items-center justify-between md:justify-end gap-2">
-                      <Button variant="destructive" onClick={() => handleVote('reject')}>
-                        Reject
+                      <Button variant="outline" onClick={handleUnvote} disabled={isBackDisabled}>
+                        Back
                       </Button>
+
+                      <div className="grow"></div>
+
                       <Button variant="secondary" onClick={() => handleVote('unsure')}>
                         Unsure
                       </Button>
-                      <Button variant="default" onClick={() => handleVote('approve')}>
-                        Approve
+                      <Button variant="destructive" onClick={() => handleVote('reject')}>
+                        <ThumbsDownIcon className='size-4' />
+                      </Button>
+                      <Button variant="secondary" onClick={() => handleVote('approve')}>
+                        <ThumbsUpIcon className='size-4' />
                       </Button>
                     </div>
                     {/* Navigation Controls (Back/Done) */}
@@ -454,7 +460,7 @@ function App() {
           </Card>
         )}
       </main>
-    </div>
+    </div >
   )
 }
 
