@@ -347,9 +347,9 @@ function App() {
               {showResults && alignmentResult && (
                 <div className="space-y-4">
                   <h3 className="font-semibold text-lg text-center">
-                    {alignmentResult.totalAnswered === totalPolicies ? "Voting Complete!" : `Results based on ${alignmentResult.totalAnswered} answered policies`}
+                    {alignmentResult.totalAnswered === totalPolicies ? "Voting Complete!" : `Results based on ${alignmentResult.totalAnswered + 1} answered policies`}
                   </h3>
-                  <Progress value={(alignmentResult.totalAnswered / totalPolicies) * 100} className="w-full mb-4" />
+                  <Progress value={((alignmentResult.totalAnswered / totalPolicies) * 100) + 1} className="w-full mb-4" />
                   <p className="text-center">
                     Based on the {alignmentResult.totalAnswered} policies you voted on,
                     you agreed with {selectedPerson?.latest_member.name.first} {selectedPerson?.latest_member.name.last} on{' '}
@@ -461,6 +461,27 @@ function App() {
             <CardContent className="pt-6">No policy voting data available for this representative.</CardContent>
           </Card>
         )}
+
+        {/* Details card */}
+        <Accordion type="single" collapsible className='w-full max-w-lg mx-auto text-left'>
+          <AccordionItem value="details">
+            <AccordionTrigger className="flex w-full justify-between">
+              <CardTitle>Details</CardTitle>
+            </AccordionTrigger>
+            <AccordionContent className='grid gap-3'>
+              <p>
+                This platform is a work in progress. It is not affiliated with They Vote For You.
+              </p>
+              <p>
+                The data presented is based on Hansard records, which are the official transcripts of parliamentary debates and proceedings. This information is sourced through the independent TheyVoteForYou API, which provides access to voting records of Australian representatives.
+              </p>
+              <h3 className="font-semibold mb-2">Privacy</h3>
+              <p>
+                We respect your privacy. This site only tracks anonymous page views via Posthog for understanding usage patterns. We do not identify individual users, collect personal information, or track your voting choices. All interactions remain completely anonymous, and this data is not shared with third parties.
+              </p>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </main>
     </div >
   )
