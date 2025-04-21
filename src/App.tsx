@@ -372,7 +372,7 @@ function App() {
                                 <li key={policy.id}>
                                   {policy.name}
                                   <span className="text-xs text-muted-foreground ml-2">
-                                    {userVote === 'approve' ? '(You both Approved)' : '(You both Rejected)'}
+                                    {userVote === 'approve' ? '(You both approved)' : '(You both rejected)'}
                                   </span>
                                 </li>
                               ))}
@@ -394,8 +394,8 @@ function App() {
                                   {policy.name}
                                   <span className="text-xs text-muted-foreground ml-2">
                                     {userVote === 'approve' // Implies repAgrees is false in disagreement case
-                                      ? `(You Approved, ${repLastName} Rejected)`
-                                      : `(You Rejected, ${repLastName} Approved)` // Implies repAgrees is true in disagreement case
+                                      ? `(You Approved, ${repLastName} rejected)`
+                                      : `(You Rejected, ${repLastName} approved)` // Implies repAgrees is true in disagreement case
                                     }
                                   </span>
                                 </li>
@@ -417,7 +417,7 @@ function App() {
                                 <li key={policy.id}>
                                   {policy.name}
                                   <span className="text-xs text-muted-foreground ml-2">
-                                    ({repLastName} {repAgrees ? 'Approved' : 'Rejected'})
+                                    ({repLastName} {repAgrees ? 'approved' : 'rejected'})
                                   </span>
                                 </li>
                               ))}
