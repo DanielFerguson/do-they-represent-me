@@ -49,14 +49,14 @@ import {
 } from "@/components/ui/accordion" // Added for breakdown
 
 // Define a type for the detailed alignment results
-type AlignmentResult = {
-  score: number;
-  comparableVotes: number;
-  totalAnswered: number;
-  agreedPolicies: Policy[];
-  disagreedPolicies: Policy[];
-  userUnsurePolicies: { policy: Policy; repAgrees: boolean }[];
-};
+// type AlignmentResult = {
+//   score: number;
+//   comparableVotes: number;
+//   totalAnswered: number;
+//   agreedPolicies: Policy[];
+//   disagreedPolicies: Policy[];
+//   userUnsurePolicies: { policy: Policy; repAgrees: boolean }[];
+// };
 
 
 function App() {
@@ -404,7 +404,7 @@ function App() {
                         </AccordionTrigger>
                         <AccordionContent>
                           <ul className="list-disc pl-5 space-y-1 text-sm">
-                            {alignmentResult.disagreedPolicies.map(({ policy, userVote, repAgrees }) => (
+                            {alignmentResult.disagreedPolicies.map(({ policy, userVote }) => (
                               <li key={policy.id}>
                                 {policy.name}
                                 <span className="text-xs text-muted-foreground ml-2">
