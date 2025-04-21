@@ -1,5 +1,4 @@
-import './App.css'
-import { Fragment, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { people } from './lib/people'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Combobox } from '@/components/ui/combobox'
@@ -11,6 +10,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { RotateCw } from 'lucide-react';
 
 type Person = {
   id: number,
@@ -61,45 +61,46 @@ function App() {
     label: `${person.latest_member.name.first} ${person.latest_member.name.last}`
   }));
 
-  // Fetch person details effect
+  // Effect to fetch and process representative details when selection changes.
   useEffect(() => {
     if (!selectedPerson) {
-      setPersonDetails(null); // Clear details if no person selected
-      setAlignmentResult(null); // Clear results
+      setPersonDetails(null);
+      setAlignmentResult(null);
       return;
     }
 
-    // Reset voting state before fetching new details
+    // Reset state for the new representative selection.
     setCurrentPolicyIndex(0);
     setUserVotes([]);
     setShowResults(false);
-    setPersonDetails(null); // Indicate loading
-    setAlignmentResult(null); // Clear previous results
+    setPersonDetails(null); // Use null to indicate loading state.
+    setAlignmentResult(null);
 
-    // Fetch the person's details
     fetch(`https://theyvoteforyou.org.au/api/v1/people/${selectedPerson.id}.json?key=${THEYVOTEFORYOU_API_KEY}`)
       .then((response) => response.json())
       .then((data: PersonDetails) => {
-        // --- Sort policies by last_edited_at descending ---
-        const sortedComparisons = [...data.policy_comparisons].sort((a, b) => {
-          // ISO 8601 strings can be compared directly for descending order (newer first)
-          return b.policy.last_edited_at.localeCompare(a.policy.last_edited_at);
-        });
+        // Process policies: Sort by date and limit to the latest 50.
+        const sortedComparisons = [...data.policy_comparisons]
+          .sort((a, b) => {
+            // ISO 8601 date strings can be compared lexicographically for recency.
+            return b.policy.last_edited_at.localeCompare(a.policy.last_edited_at);
+          })
+          .slice(0, 50); // Limit the number of policies presented to the user.
 
         const sortedData = { ...data, policy_comparisons: sortedComparisons };
         setPersonDetails(sortedData);
-        // Initialize votes array based on the *sorted* data length
+        // Initialize user votes array to match the number of fetched policies.
         setUserVotes(new Array(sortedData.policy_comparisons.length).fill(null));
       })
       .catch(error => {
         console.error("Failed to fetch person details:", error);
-        // Handle error state if needed
+        // TODO: Implement more robust error handling UI.
         setPersonDetails(null);
         setAlignmentResult(null);
       });
   }, [selectedPerson]);
 
-  // Use the sorted policy comparisons from state
+  // Memoize or derive directly? Current approach uses state derived value.
   const sortedPolicyComparisons = personDetails?.policy_comparisons ?? [];
   const totalPolicies = sortedPolicyComparisons.length;
 
@@ -113,28 +114,27 @@ function App() {
     if (currentPolicyIndex < totalPolicies - 1) {
       setCurrentPolicyIndex(currentPolicyIndex + 1);
     } else {
-      // Calculate results immediately when the last vote is cast
+      // Auto-calculate and show results when the last policy is voted on.
       setAlignmentResult(calculateAlignment());
-      setShowResults(true); // All policies voted on
+      setShowResults(true);
     }
   };
 
-  // --- Handler to show results early ---
+  // Allows the user to view results before voting on all policies.
   const handleShowResults = () => {
-    if (totalPolicies > 0) { // Only show results if there are policies
-      // Calculate results when 'Done' is clicked
+    if (totalPolicies > 0) {
       setAlignmentResult(calculateAlignment());
       setShowResults(true);
     }
   }
 
-  const handleUnvote = () => { // Renamed to handleBack for clarity
+  // Handles navigation back during voting or from the results screen.
+  const handleUnvote = () => {
     if (!personDetails) return;
 
     if (showResults) {
-      // --- Back from Results Screen ---
-      // Find the index of the last policy the user actually voted on (not null).
-      // Replace findLastIndex with a loop for broader compatibility
+      // Navigate back from results: Go to the last voted policy or the first if none were voted.
+      // Manual implementation of findLastIndex for broader browser compatibility.
       let lastVotedIndex = -1;
       for (let i = userVotes.length - 1; i >= 0; i--) {
         if (userVotes[i] !== null) {
@@ -144,37 +144,36 @@ function App() {
       }
 
       if (lastVotedIndex !== -1) {
-        // If votes exist, go back to the index of the last vote cast, allowing change.
+        // Return user to the last policy they actively voted on.
         setCurrentPolicyIndex(lastVotedIndex);
       } else {
-        // If no votes were cast (e.g., clicked 'Done' immediately), go back to the first policy.
+        // If user clicked 'Done' without voting, return to the first policy.
         setCurrentPolicyIndex(0);
       }
-      setShowResults(false); // Go back to voting view
-      setAlignmentResult(null); // Clear results when going back to vote
+      setShowResults(false);
+      setAlignmentResult(null); // Clear results when returning to voting.
 
     } else if (currentPolicyIndex > 0) {
-      // --- Back during Voting ---
-      // Go back one step (to the previous index) without clearing the vote.
+      // Navigate back during voting: Go to the previous policy.
       const prevIndex = currentPolicyIndex - 1;
       setCurrentPolicyIndex(prevIndex);
     }
-    // If currentPolicyIndex is 0 during voting, 'Back' does nothing.
+    // Intentionally do nothing if on the first policy during voting.
   };
 
 
-  // --- Calculate detailed alignment results ---
-  // Define a type for the detailed alignment results (Updated)
+  // Defines the structure for storing detailed alignment calculation results.
   type AlignmentResult = {
-    score: number;
-    comparableVotes: number;
-    totalAnswered: number;
-    // Store more details for breakdown
+    score: number; // Percentage agreement on comparable votes.
+    comparableVotes: number; // Count of policies where both user and rep had clear stance (Approve/Reject).
+    totalAnswered: number; // Count of policies the user voted on (including 'Unsure').
+    // Detailed lists for result breakdown:
     agreedPolicies: { policy: Policy; userVote: 'approve' | 'reject'; repAgrees: boolean }[];
     disagreedPolicies: { policy: Policy; userVote: 'approve' | 'reject'; repAgrees: boolean }[];
     userUnsurePolicies: { policy: Policy; repAgrees: boolean }[];
   };
 
+  // Calculates the alignment score and detailed breakdown based on user votes and representative data.
   const calculateAlignment = (): AlignmentResult => {
     const defaultResult: AlignmentResult = {
       score: 0,
@@ -186,16 +185,17 @@ function App() {
     };
 
     if (!personDetails || userVotes.length !== totalPolicies) {
+      // Should not happen in normal flow, but guards against inconsistent state.
+      console.warn("Attempted to calculate alignment with inconsistent data.");
       return defaultResult;
     }
 
     let agreements = 0;
     let comparableVotes = 0;
     let totalAnswered = 0;
-    // Initialize with the updated type
-    const agreedPolicies: { policy: Policy; userVote: 'approve' | 'reject'; repAgrees: boolean }[] = [];
-    const disagreedPolicies: { policy: Policy; userVote: 'approve' | 'reject'; repAgrees: boolean }[] = [];
-    const userUnsurePolicies: { policy: Policy; repAgrees: boolean }[] = [];
+    const agreedPolicies: AlignmentResult['agreedPolicies'] = [];
+    const disagreedPolicies: AlignmentResult['disagreedPolicies'] = [];
+    const userUnsurePolicies: AlignmentResult['userUnsurePolicies'] = [];
 
     sortedPolicyComparisons.forEach((comparison, index) => {
       const userVote = userVotes[index];
@@ -205,28 +205,28 @@ function App() {
         totalAnswered++;
       }
 
-      // API uses "100" for agreement, "0.0" for disagreement on the policy statement
+      // Note: The API represents agreement/disagreement with "100" or "0.0" strings.
       const repAgreesWithPolicy = parseFloat(comparison.agreement) === 100;
 
       if (userVote === 'approve' || userVote === 'reject') {
+        // Only count towards score if both user and rep have a clear stance.
         comparableVotes++;
-        // Agreement: User approves AND rep agrees, OR User rejects AND rep disagrees
-        if ((userVote === 'approve' && repAgreesWithPolicy) || (userVote === 'reject' && !repAgreesWithPolicy)) {
+        const userAgreesWithRep = (userVote === 'approve' && repAgreesWithPolicy) || (userVote === 'reject' && !repAgreesWithPolicy);
+
+        if (userAgreesWithRep) {
           agreements++;
-          // Store details for breakdown
           agreedPolicies.push({ policy, userVote, repAgrees: repAgreesWithPolicy });
         } else {
-          // Disagreement: User approves AND rep disagrees, OR User rejects AND rep agrees
-          // Store details for breakdown
           disagreedPolicies.push({ policy, userVote, repAgrees: repAgreesWithPolicy });
         }
       } else if (userVote === 'unsure') {
-        // Track policies where the user was unsure and the representative's stance
+        // Track policies where the user was unsure for the breakdown.
         userUnsurePolicies.push({ policy, repAgrees: repAgreesWithPolicy });
       }
-      // Cases where userVote is null are ignored for scoring and breakdown lists
+      // Policies where userVote is null (skipped) are ignored.
     });
 
+    // Avoid division by zero if no comparable votes exist.
     const score = comparableVotes > 0 ? Math.round((agreements / comparableVotes) * 100) : 0;
 
     return {
@@ -239,98 +239,80 @@ function App() {
     };
   };
 
-  // Get data for the current policy based on the index and sorted list
   const currentPolicyData = sortedPolicyComparisons[currentPolicyIndex];
   const currentPolicy = currentPolicyData?.policy;
 
-  // Determine if the Back button should be disabled
+  // Logic to disable the 'Back' button appropriately.
   const isBackDisabled = totalPolicies === 0 ||
-    (!showResults && currentPolicyIndex === 0) || // Can't go back from first question during voting
-    (showResults && userVotes.every(vote => vote === null)); // Can't go back from results if nothing was voted on
+    (!showResults && currentPolicyIndex === 0) || // Cannot go back from the first policy during voting.
+    (showResults && userVotes.every(vote => vote === null)); // Cannot go back from results if no votes were cast.
 
-  // Determine if the Done button should be disabled (only shown during voting)
-  const isDoneDisabled = showResults || totalPolicies === 0; // Disable if already showing results or no policies
+  // // Logic to disable the 'Done' button (only relevant during voting).
+  // const isDoneDisabled = showResults || totalPolicies === 0; // Disable if results are shown or no policies exist.
 
-  const repLastName = selectedPerson?.latest_member.name.last ?? 'Rep'; // Fallback name
+  // Provide a fallback for the representative's last name in UI text.
+  const repLastName = selectedPerson?.latest_member.name.last ?? 'Rep';
 
   return (
-    <Fragment>
-      {/* Search for a representative */}
-      <Card className='w-[500px] mx-auto text-left mb-4'>
-        <CardHeader>
-          <CardTitle>Do They Represent Me?</CardTitle>
-          <CardDescription>Find your representative by searching for their name.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Combobox
-            options={formattedPeople}
-            value={selectedPerson ? `${selectedPerson.latest_member.name.first} ${selectedPerson.latest_member.name.last}` : ''}
-            setValue={(value) => {
-              const person = people.find((p) => `${p.latest_member.name.first} ${p.latest_member.name.last}` === value);
-              setSelectedPerson(person || null); // Set to null if not found
-            }}
-            searchPlaceholder='Search for a representative'
-            noResultsMessage='No representatives found'
-          />
-        </CardContent>
-      </Card>
+    <div className="min-h-screen bg-background text-foreground">
+      <nav className="bg-primary text-primary-foreground p-4 shadow-md">
+        <div className="container mx-auto flex justify-center sm:justify-start">
+          <h1 className="text-2xl font-bold">Do They Represent Me?</h1>
+        </div>
+      </nav>
 
-      {/* Show loading state */}
-      {selectedPerson && !personDetails && (
-        <Card className='w-[500px] mx-auto text-left'>
-          <CardContent className="pt-6">Loading policy data...</CardContent>
-        </Card>
-      )}
-
-      {/* Show policy voting or results */}
-      {personDetails && totalPolicies > 0 && (
-        <Card className='w-[500px] mx-auto text-left'>
+      <main className="p-4 grid grid-cols-1 gap-4">
+        {/* Representative Selection Card */}
+        <Card className='w-full max-w-lg mx-auto text-left'>
           <CardHeader>
-            <CardTitle>Policy Alignment</CardTitle>
-            <CardDescription>
-              {showResults
-                ? `Here's how your votes compare to ${selectedPerson?.latest_member.name.first} ${selectedPerson?.latest_member.name.last}.`
-                // Show progress based on current index during voting
-                : `Vote on the following policies to see how you align. Policy ${currentPolicyIndex + 1} of ${totalPolicies}.`}
-            </CardDescription>
+            <CardTitle>Find your representative</CardTitle>
+            <CardDescription>Find your representative by searching for their name.</CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Voting View */}
-            {!showResults && currentPolicy && (
-              <div className="space-y-4">
-                {/* Show progress based on current index */}
-                <Progress value={((currentPolicyIndex + 1) / totalPolicies) * 100} className="w-full mb-4" />
-                <h3 className="font-semibold text-lg">{currentPolicy.name}</h3>
-                <p className="text-sm text-muted-foreground">{currentPolicy.description}</p>
-                <div className="flex justify-between items-center pt-4 border-t mt-4">
-                  {/* Back Button */}
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" onClick={handleUnvote} disabled={isBackDisabled}>
-                      Back
-                    </Button>
-                    <Button variant="secondary" onClick={handleShowResults} disabled={isDoneDisabled}>
-                      Done
-                    </Button>
-                  </div>
+            <Combobox
+              options={formattedPeople}
+              value={selectedPerson ? `${selectedPerson.latest_member.name.first} ${selectedPerson.latest_member.name.last}` : ''}
+              setValue={(value) => {
+                const person = people.find((p) => `${p.latest_member.name.first} ${p.latest_member.name.last}` === value);
+                setSelectedPerson(person || null);
+              }}
+              searchPlaceholder='Search for a representative'
+              noResultsMessage='No representatives found'
+            />
+          </CardContent>
+        </Card>
 
-                  {/* Voting Actions Group */}
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="flex gap-2"
-                      onKeyDown={(event) => {
-                        if (event.key === 'ArrowLeft') {
-                          event.preventDefault();
-                          handleVote('reject');
-                        } else if (event.key === 'ArrowUp') {
-                          event.preventDefault();
-                          handleVote('unsure');
-                        } else if (event.key === 'ArrowRight') {
-                          event.preventDefault();
-                          handleVote('approve');
-                        }
-                      }}
-                      tabIndex={0} // Make the div focusable to receive key events
-                    >
+        {/* Loading Indicator */}
+        {selectedPerson && !personDetails && (
+          <Card className='w-full max-w-lg mx-auto text-left'>
+            <CardContent className='flex items-center gap-2'>
+              <RotateCw className='animate-spin size-4' />
+              <span>Loading policy data...</span>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Policy Voting / Results Card */}
+        {personDetails && totalPolicies > 0 && (
+          <Card className='w-full max-w-lg mx-auto text-left'>
+            <CardHeader>
+              <CardTitle>Policy alignment</CardTitle>
+              <CardDescription>
+                {showResults
+                  ? `Here's how your votes compare to ${selectedPerson?.latest_member.name.first} ${selectedPerson?.latest_member.name.last}.`
+                  : `Vote on the following policies to see how you align. Policy ${currentPolicyIndex + 1} of ${totalPolicies}.`}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Voting Interface */}
+              {!showResults && currentPolicy && (
+                <div className="space-y-4">
+                  <Progress value={((currentPolicyIndex + 1) / totalPolicies) * 100} className="w-full mb-4" />
+                  <h3 className="font-semibold text-lg">{currentPolicy.name}</h3>
+                  <p className="text-sm text-muted-foreground">{currentPolicy.description}</p>
+                  <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-4 pt-4 border-t mt-4">
+                    {/* Voting Actions (Reject/Unsure/Approve) */}
+                    <div className="flex w-full sm:w-auto items-center justify-between md:justify-end gap-2">
                       <Button variant="destructive" onClick={() => handleVote('reject')}>
                         Reject
                       </Button>
@@ -341,132 +323,138 @@ function App() {
                         Approve
                       </Button>
                     </div>
+                    {/* Navigation Controls (Back/Done) */}
+                    {/* <div className="flex w-full sm:w-auto items-center justify-between sm:justify-start gap-2">
+                      <Button variant="outline" onClick={handleUnvote} disabled={isBackDisabled}>
+                        Back
+                      </Button>
+                      <Button variant="secondary" onClick={handleShowResults} disabled={isDoneDisabled}>
+                        Done
+                      </Button>
+                    </div> */}
                   </div>
                 </div>
-              </div>
-            )}
-            {/* Results View */}
-            {showResults && alignmentResult && (
-              <div className="space-y-4">
-                <h3 className="font-semibold text-lg text-center">
-                  {/* Adjust title based on whether all policies were answered */}
-                  {alignmentResult.totalAnswered === totalPolicies ? "Voting Complete!" : `Results based on ${alignmentResult.totalAnswered} answered policies`}
-                </h3>
-                {/* Show progress based on answered questions relative to total */}
-                <Progress value={(alignmentResult.totalAnswered / totalPolicies) * 100} className="w-full mb-4" />
-                <p className="text-center">
-                  Based on the {alignmentResult.totalAnswered} policies you voted on,
-                  you agreed with {selectedPerson?.latest_member.name.first} {selectedPerson?.latest_member.name.last} on{' '}
-                  <span className="font-bold text-xl">{alignmentResult.score}%</span> of the {alignmentResult.comparableVotes} policies where you both expressed a clear stance (Approve/Reject).
-                </p>
+              )}
+              {/* Results Display */}
+              {showResults && alignmentResult && (
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg text-center">
+                    {alignmentResult.totalAnswered === totalPolicies ? "Voting Complete!" : `Results based on ${alignmentResult.totalAnswered} answered policies`}
+                  </h3>
+                  <Progress value={(alignmentResult.totalAnswered / totalPolicies) * 100} className="w-full mb-4" />
+                  <p className="text-center">
+                    Based on the {alignmentResult.totalAnswered} policies you voted on,
+                    you agreed with {selectedPerson?.latest_member.name.first} {selectedPerson?.latest_member.name.last} on{' '}
+                    <span className="font-bold text-xl">{alignmentResult.score}%</span> of the {alignmentResult.comparableVotes} policies where you both expressed a clear stance (Approve/Reject).
+                  </p>
 
-                {/* --- Breakdown Section --- */}
-                <div className="pt-4 text-left">
-                  <h4 className="font-semibold mb-2 text-center">Breakdown:</h4>
-                  <Accordion type="single" collapsible className="w-full">
-                    {/* Agreements */}
-                    {alignmentResult.agreedPolicies.length > 0 && (
-                      <AccordionItem value="agreements">
-                        <AccordionTrigger>
-                          Agreements ({alignmentResult.agreedPolicies.length})
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <ul className="list-disc pl-5 space-y-1 text-sm">
-                            {alignmentResult.agreedPolicies.map(({ policy, userVote }) => (
-                              <li key={policy.id}>
-                                {policy.name}
-                                <span className="text-xs text-muted-foreground ml-2">
-                                  {userVote === 'approve' ? '(You both Approved)' : '(You both Rejected)'}
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        </AccordionContent>
-                      </AccordionItem>
-                    )}
+                  {/* Results Breakdown Section */}
+                  <div className="pt-4 text-left">
+                    <h4 className="font-semibold mb-2 text-center">Breakdown:</h4>
+                    <Accordion type="single" collapsible className="w-full">
+                      {/* Agreements Breakdown */}
+                      {alignmentResult.agreedPolicies.length > 0 && (
+                        <AccordionItem value="agreements">
+                          <AccordionTrigger>
+                            Agreements ({alignmentResult.agreedPolicies.length})
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <ul className="list-disc pl-5 space-y-1 text-sm">
+                              {alignmentResult.agreedPolicies.map(({ policy, userVote }) => (
+                                <li key={policy.id}>
+                                  {policy.name}
+                                  <span className="text-xs text-muted-foreground ml-2">
+                                    {userVote === 'approve' ? '(You both Approved)' : '(You both Rejected)'}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </AccordionContent>
+                        </AccordionItem>
+                      )}
 
-                    {/* Disagreements */}
-                    {alignmentResult.disagreedPolicies.length > 0 && (
-                      <AccordionItem value="disagreements">
-                        <AccordionTrigger>
-                          Disagreements ({alignmentResult.disagreedPolicies.length})
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <ul className="list-disc pl-5 space-y-1 text-sm">
-                            {alignmentResult.disagreedPolicies.map(({ policy, userVote }) => (
-                              <li key={policy.id}>
-                                {policy.name}
-                                <span className="text-xs text-muted-foreground ml-2">
-                                  {userVote === 'approve' // Implies repAgrees is false here
-                                    ? `(You Approved, ${repLastName} Rejected)`
-                                    : `(You Rejected, ${repLastName} Approved)` // Implies repAgrees is true here
-                                  }
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        </AccordionContent>
-                      </AccordionItem>
-                    )}
+                      {/* Disagreements Breakdown */}
+                      {alignmentResult.disagreedPolicies.length > 0 && (
+                        <AccordionItem value="disagreements">
+                          <AccordionTrigger>
+                            Disagreements ({alignmentResult.disagreedPolicies.length})
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <ul className="list-disc pl-5 space-y-1 text-sm">
+                              {alignmentResult.disagreedPolicies.map(({ policy, userVote, repAgrees }) => (
+                                <li key={policy.id}>
+                                  {policy.name}
+                                  <span className="text-xs text-muted-foreground ml-2">
+                                    {userVote === 'approve' // Implies repAgrees is false in disagreement case
+                                      ? `(You Approved, ${repLastName} Rejected)`
+                                      : `(You Rejected, ${repLastName} Approved)` // Implies repAgrees is true in disagreement case
+                                    }
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </AccordionContent>
+                        </AccordionItem>
+                      )}
 
-                    {/* User was Unsure */}
-                    {alignmentResult.userUnsurePolicies.length > 0 && (
-                      <AccordionItem value="unsure">
-                        <AccordionTrigger>
-                          You Were Unsure ({alignmentResult.userUnsurePolicies.length})
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <ul className="list-disc pl-5 space-y-1 text-sm">
-                            {alignmentResult.userUnsurePolicies.map(({ policy, repAgrees }) => (
-                              <li key={policy.id}>
-                                {policy.name}
-                                <span className="text-xs text-muted-foreground ml-2">
-                                  ({repLastName} {repAgrees ? 'Approved' : 'Rejected'})
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        </AccordionContent>
-                      </AccordionItem>
+                      {/* User Unsure Breakdown */}
+                      {alignmentResult.userUnsurePolicies.length > 0 && (
+                        <AccordionItem value="unsure">
+                          <AccordionTrigger>
+                            You Were Unsure ({alignmentResult.userUnsurePolicies.length})
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <ul className="list-disc pl-5 space-y-1 text-sm">
+                              {alignmentResult.userUnsurePolicies.map(({ policy, repAgrees }) => (
+                                <li key={policy.id}>
+                                  {policy.name}
+                                  <span className="text-xs text-muted-foreground ml-2">
+                                    ({repLastName} {repAgrees ? 'Approved' : 'Rejected'})
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </AccordionContent>
+                        </AccordionItem>
+                      )}
+                    </Accordion>
+                    {/* Edge case messages for results */}
+                    {alignmentResult.comparableVotes === 0 && alignmentResult.totalAnswered > 0 && (
+                      <p className="text-sm text-muted-foreground text-center mt-4">No policies with clear Approve/Reject votes from you to compare.</p>
                     )}
-                  </Accordion>
-                  {/* Message if no comparable votes */}
-                  {alignmentResult.comparableVotes === 0 && alignmentResult.totalAnswered > 0 && (
-                    <p className="text-sm text-muted-foreground text-center mt-4">No policies with clear Approve/Reject votes from you to compare.</p>
-                  )}
-                  {/* Message if no votes at all */}
-                  {alignmentResult.totalAnswered === 0 && (
-                    <p className="text-sm text-muted-foreground text-center mt-4">You didn't vote on any policies.</p>
-                  )}
+                    {alignmentResult.totalAnswered === 0 && (
+                      <p className="text-sm text-muted-foreground text-center mt-4">You didn't vote on any policies.</p>
+                    )}
+                  </div>
+
+                  {/* Results Actions */}
+                  <div className="flex flex-wrap justify-center gap-4 pt-4 border-t mt-4">
+                    <Button variant="outline" onClick={handleUnvote} disabled={isBackDisabled}>
+                      Go Back
+                    </Button>
+                    <Button onClick={() => {
+                      // Reset state to allow voting again for the same representative.
+                      setCurrentPolicyIndex(0);
+                      // Ensure userVotes is reset based on the number of policies.
+                      setUserVotes(new Array(totalPolicies).fill(null));
+                      setShowResults(false);
+                      setAlignmentResult(null);
+                    }}>Vote Again</Button>
+                  </div>
                 </div>
-                {/* --- End Breakdown Section --- */}
+              )}
+            </CardContent>
+          </Card>
+        )}
 
-                <div className="flex justify-center gap-4 pt-4 border-t mt-4">
-                  {/* Back Button (now labeled differently) */}
-                  <Button variant="outline" onClick={handleUnvote} disabled={isBackDisabled}>
-                    Go Back
-                  </Button>
-                  <Button onClick={() => {
-                    // Reset voting for the same person
-                    setCurrentPolicyIndex(0);
-                    // Ensure userVotes is reset based on the *sorted* length
-                    setUserVotes(new Array(totalPolicies).fill(null));
-                    setShowResults(false);
-                    setAlignmentResult(null); // Clear results for vote again
-                  }}>Vote Again</Button>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-      {/* No policies available message */}
-      {personDetails && totalPolicies === 0 && (
-        <Card className='w-[500px] mx-auto text-left'>
-          <CardContent className="pt-6">No policy voting data available for this representative.</CardContent>
-        </Card>
-      )}
-    </Fragment>
+        {/* Message when no policy data is available for the selected representative */}
+        {personDetails && totalPolicies === 0 && (
+          <Card className='w-full max-w-lg mx-auto text-left'>
+            <CardContent className="pt-6">No policy voting data available for this representative.</CardContent>
+          </Card>
+        )}
+      </main>
+    </div>
   )
 }
 
