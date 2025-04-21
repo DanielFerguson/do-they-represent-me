@@ -65,9 +65,7 @@ function App() {
   const [currentPolicyIndex, setCurrentPolicyIndex] = useState(0);
   const [userVotes, setUserVotes] = useState<UserVote[]>([]);
   const [showResults, setShowResults] = useState(false);
-  // State to hold the detailed alignment results
   const [alignmentResult, setAlignmentResult] = useState<AlignmentResult | null>(null);
-
 
   const formattedPeople = people.map((person) => ({
     value: `${person.latest_member.name.first} ${person.latest_member.name.last}`,
@@ -90,7 +88,7 @@ function App() {
     setAlignmentResult(null); // Clear previous results
 
     // Fetch the person's details
-    fetch(`https://theyvoteforyou.org.au/api/v1/people/${selectedPerson.id}.json?key=V8Dwp5hntNFnts9kncuE`)
+    fetch(`/api/handler?id=${selectedPerson.id}`)
       .then((response) => response.json())
       .then((data: PersonDetails) => {
         // --- Sort policies by last_edited_at descending ---
@@ -177,6 +175,17 @@ function App() {
 
 
   // --- Calculate detailed alignment results ---
+  // Define a type for the detailed alignment results (Updated)
+  type AlignmentResult = {
+    score: number;
+    comparableVotes: number;
+    totalAnswered: number;
+    // Store more details for breakdown
+    agreedPolicies: { policy: Policy; userVote: 'approve' | 'reject'; repAgrees: boolean }[];
+    disagreedPolicies: { policy: Policy; userVote: 'approve' | 'reject'; repAgrees: boolean }[];
+    userUnsurePolicies: { policy: Policy; repAgrees: boolean }[];
+  };
+
   const calculateAlignment = (): AlignmentResult => {
     const defaultResult: AlignmentResult = {
       score: 0,
@@ -194,8 +203,9 @@ function App() {
     let agreements = 0;
     let comparableVotes = 0;
     let totalAnswered = 0;
-    const agreedPolicies: Policy[] = [];
-    const disagreedPolicies: Policy[] = [];
+    // Initialize with the updated type
+    const agreedPolicies: { policy: Policy; userVote: 'approve' | 'reject'; repAgrees: boolean }[] = [];
+    const disagreedPolicies: { policy: Policy; userVote: 'approve' | 'reject'; repAgrees: boolean }[] = [];
     const userUnsurePolicies: { policy: Policy; repAgrees: boolean }[] = [];
 
     sortedPolicyComparisons.forEach((comparison, index) => {
@@ -207,7 +217,6 @@ function App() {
       }
 
       // API uses "100" for agreement, "0.0" for disagreement on the policy statement
-      // Handle potential non-numeric values gracefully, defaulting to disagreement
       const repAgreesWithPolicy = parseFloat(comparison.agreement) === 100;
 
       if (userVote === 'approve' || userVote === 'reject') {
@@ -215,10 +224,12 @@ function App() {
         // Agreement: User approves AND rep agrees, OR User rejects AND rep disagrees
         if ((userVote === 'approve' && repAgreesWithPolicy) || (userVote === 'reject' && !repAgreesWithPolicy)) {
           agreements++;
-          agreedPolicies.push(policy);
+          // Store details for breakdown
+          agreedPolicies.push({ policy, userVote, repAgrees: repAgreesWithPolicy });
         } else {
           // Disagreement: User approves AND rep disagrees, OR User rejects AND rep agrees
-          disagreedPolicies.push(policy);
+          // Store details for breakdown
+          disagreedPolicies.push({ policy, userVote, repAgrees: repAgreesWithPolicy });
         }
       } else if (userVote === 'unsure') {
         // Track policies where the user was unsure and the representative's stance
@@ -250,6 +261,8 @@ function App() {
 
   // Determine if the Done button should be disabled (only shown during voting)
   const isDoneDisabled = showResults || totalPolicies === 0; // Disable if already showing results or no policies
+
+  const repLastName = selectedPerson?.latest_member.name.last ?? 'Rep'; // Fallback name
 
   return (
     <Fragment>
@@ -370,8 +383,13 @@ function App() {
                         </AccordionTrigger>
                         <AccordionContent>
                           <ul className="list-disc pl-5 space-y-1 text-sm">
-                            {alignmentResult.agreedPolicies.map(policy => (
-                              <li key={policy.id}>{policy.name}</li>
+                            {alignmentResult.agreedPolicies.map(({ policy, userVote }) => (
+                              <li key={policy.id}>
+                                {policy.name}
+                                <span className="text-xs text-muted-foreground ml-2">
+                                  {userVote === 'approve' ? '(You both Approved)' : '(You both Rejected)'}
+                                </span>
+                              </li>
                             ))}
                           </ul>
                         </AccordionContent>
@@ -386,8 +404,16 @@ function App() {
                         </AccordionTrigger>
                         <AccordionContent>
                           <ul className="list-disc pl-5 space-y-1 text-sm">
-                            {alignmentResult.disagreedPolicies.map(policy => (
-                              <li key={policy.id}>{policy.name}</li>
+                            {alignmentResult.disagreedPolicies.map(({ policy, userVote, repAgrees }) => (
+                              <li key={policy.id}>
+                                {policy.name}
+                                <span className="text-xs text-muted-foreground ml-2">
+                                  {userVote === 'approve' // Implies repAgrees is false here
+                                    ? `(You Approved, ${repLastName} Rejected)`
+                                    : `(You Rejected, ${repLastName} Approved)` // Implies repAgrees is true here
+                                  }
+                                </span>
+                              </li>
                             ))}
                           </ul>
                         </AccordionContent>
@@ -406,7 +432,7 @@ function App() {
                               <li key={policy.id}>
                                 {policy.name}
                                 <span className="text-xs text-muted-foreground ml-2">
-                                  ({selectedPerson?.latest_member.name.last} {repAgrees ? 'Agreed' : 'Disagreed'})
+                                  ({repLastName} {repAgrees ? 'Approved' : 'Rejected'})
                                 </span>
                               </li>
                             ))}
