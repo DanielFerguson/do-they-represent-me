@@ -325,7 +325,7 @@ function App() {
                       <Button variant="destructive" onClick={() => handleVote('reject')}>
                         <ThumbsDownIcon className='size-4' />
                       </Button>
-                      <Button variant="secondary" onClick={() => handleVote('approve')}>
+                      <Button variant="success" onClick={() => handleVote('approve')}>
                         <ThumbsUpIcon className='size-4' />
                       </Button>
                     </div>
