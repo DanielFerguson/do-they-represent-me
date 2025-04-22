@@ -87,6 +87,7 @@ function App() {
           })
           .filter((comparison) => comparison.policy.provisional === false) // Only show non-provisional policies.
           .filter((comparison) => comparison.voted) // Only show policies that have been voted on.
+          .filter((comparison) => !comparison.policy.name.includes('(procedural)')) // Remove procedural motions.
           .slice(0, 50); // Limit the number of policies presented to the user.
 
         const sortedData = { ...data, policy_comparisons: sortedComparisons };
