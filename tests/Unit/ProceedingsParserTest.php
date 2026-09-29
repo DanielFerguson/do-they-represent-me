@@ -132,3 +132,61 @@ it('only ever records personal names as voters', function (string $fixture) {
 
     expect($notNames->all())->toBe([]);
 })->with('fixtures');
+
+it('attributes council committee of the whole divisions to the bill in the supplement', function () {
+    $division = collect(parseFixture('council-2025-m128-130.docx'))
+        ->first(fn (ParsedDivision $division) => $division->body === 'Committee');
+
+    expect($division->itemTitle)->toBe('WORKER SCREENING AMENDMENT (STRENGTHENING THE WORKING WITH CHILDREN CHECK) BILL 2025')
+        ->and($division->itemNumber)->toBeNull()
+        ->and($division->question)->toBe('Question — That the amendments be agreed to — put.');
+});
+
+it('looks past a bare "Question — put." to the motion that was put', function () {
+    $divisions = (new ProceedingsParser)->parse([
+        'No. 137 — Tuesday, 28 October 2025',
+        '9 STATEWIDE TREATY BILL 2025 — Debate resumed on the question, That the Bill be now read a second time.',
+        'Debate continued.',
+        'Question — put.',
+        'The Council divided — The President in the Chair.',
+        'AYES, 2',
+        'Ryan Batchelor; John Berger.',
+        'NOES, 1',
+        'Melina Bath.',
+        'Question agreed to.',
+        'Bill read a second time.',
+        'Lizzie Blandthorn moved, That the Bill be now read a third time and do pass.',
+        'Question — put.',
+        'The Council divided — The President in the Chair.',
+        'AYES, 2',
+        'Ryan Batchelor; John Berger.',
+        'NOES, 1',
+        'Melina Bath.',
+        'Question agreed to.',
+    ]);
+
+    expect($divisions)->toHaveCount(2)
+        ->and($divisions[0]->question)->toBe('9 STATEWIDE TREATY BILL 2025 — Debate resumed on the question, That the Bill be now read a second time.')
+        ->and($divisions[0]->itemTitle)->toBe('STATEWIDE TREATY BILL 2025')
+        ->and($divisions[1]->question)->toBe('Lizzie Blandthorn moved, That the Bill be now read a third time and do pass.')
+        ->and($divisions[1]->itemTitle)->toBe('STATEWIDE TREATY BILL 2025');
+});
+
+it('recognises a business item heading with no space before the dash', function () {
+    $divisions = (new ProceedingsParser)->parse([
+        'No. 30 — Wednesday, 16 August 2023',
+        '6 Nuclear activities (prohibitions) repeal bill 2023 — David Limbrick moved, That the Bill be now read a second time.',
+        '7 Independent Broad-based Anti-corruption Commission Amendment (Facilitation of Timely Reporting) Bill 2022— Debate resumed on the question, That the Bill be now read a second time.',
+        'David Davis moved, That the Bill be now read a third time and do pass.',
+        'Question — put.',
+        'The Council divided — The President in the Chair.',
+        'AYES, 1',
+        'David Davis.',
+        'NOES, 1',
+        'Jaclyn Symes.',
+        'Question agreed to.',
+    ]);
+
+    expect($divisions[0]->itemNumber)->toBe(7)
+        ->and($divisions[0]->itemTitle)->toBe('Independent Broad-based Anti-corruption Commission Amendment (Facilitation of Timely Reporting) Bill 2022');
+});

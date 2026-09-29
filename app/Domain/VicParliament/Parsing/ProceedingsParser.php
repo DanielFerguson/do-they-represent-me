@@ -32,7 +32,12 @@ class ProceedingsParser
 
     private const PRESIDING = '/the (Acting Speaker|Deputy Speaker|Speaker|Acting President|Deputy President|President|Acting Chair|Deputy Chair|Chair)(?:,\s*([^,]+?),)?\s+in the Chair/iu';
 
-    private const ITEM_HEADING = '/^(\d{1,3})\s*(\p{Lu}.+?)\s+—/u';
+    private const ITEM_HEADING = '/^(\d{1,3})\s*(\p{Lu}.+?)\s*—/u';
+
+    /**
+     * Unnumbered bill headings, used by the Council's "Committee of the whole" supplement.
+     */
+    private const BILL_HEADING = "/^(?=.*\\bBILL \\d{4}$)[\\p{Lu}\\d\\s,’'()\\-–&.]+$/u";
 
     private const LOOKBEHIND = 12;
 
@@ -90,6 +95,8 @@ class ProceedingsParser
             if ($header === null) {
                 if (preg_match(self::ITEM_HEADING, $paragraph, $match)) {
                     $item = ['number' => (int) $match[1], 'title' => $match[2], 'index' => $index];
+                } elseif (preg_match(self::BILL_HEADING, $paragraph)) {
+                    $item = ['number' => null, 'title' => $paragraph, 'index' => $index];
                 }
 
                 continue;
@@ -132,7 +139,7 @@ class ProceedingsParser
      * numbered business item (usually naming the bill) it belongs to.
      *
      * @param  list<string>  $paragraphs
-     * @param  array{number: int, title: string, index: int}|null  $item
+     * @param  array{number: ?int, title: string, index: int}|null  $item
      * @return DivisionHeader
      */
     private function header(array $paragraphs, int $index, string $body, string $chairText, int $sittingNumber, CarbonImmutable $sittingDate, int $sequence, ?array $item): array
@@ -141,7 +148,7 @@ class ProceedingsParser
         $earliest = max(0, $index - self::LOOKBEHIND, $item['index'] ?? 0);
 
         for ($cursor = $index - 1; $cursor >= $earliest; $cursor--) {
-            if (str_starts_with($paragraphs[$cursor], 'Question')) {
+            if ($this->statesQuestion($paragraphs[$cursor])) {
                 $question = $paragraphs[$cursor];
 
                 break;
@@ -165,6 +172,22 @@ class ProceedingsParser
             'itemTitle' => $item['title'] ?? null,
             'question' => $question,
         ];
+    }
+
+    /**
+     * Whether a paragraph states the question put, e.g. "Question — That the
+     * Bill be now read a third time — put." or "Jane Citizen moved, That the
+     * Bill be now read a third time and do pass." A bare "Question — put."
+     * says nothing, so the search continues past it to the motion itself.
+     */
+    private function statesQuestion(string $paragraph): bool
+    {
+        if (preg_match('/\bThat\b/u', $paragraph) !== 1) {
+            return false;
+        }
+
+        return str_starts_with($paragraph, 'Question')
+            || preg_match('/\b(moved|question),? That\b/u', $paragraph) === 1;
     }
 
     /**
