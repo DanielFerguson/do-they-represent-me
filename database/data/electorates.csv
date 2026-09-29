@@ -1,0 +1,97 @@
+house,kind,name,slug,region
+council,region,Eastern Victoria,eastern-victoria,
+council,region,North-Eastern Metropolitan,north-eastern-metropolitan,
+council,region,Northern Metropolitan,northern-metropolitan,
+council,region,Northern Victoria,northern-victoria,
+council,region,South-Eastern Metropolitan,south-eastern-metropolitan,
+council,region,Southern Metropolitan,southern-metropolitan,
+council,region,Western Metropolitan,western-metropolitan,
+council,region,Western Victoria,western-victoria,
+assembly,district,Albert Park,albert-park,Southern Metropolitan
+assembly,district,Ashwood,ashwood,Southern Metropolitan
+assembly,district,Bass,bass,Eastern Victoria
+assembly,district,Bayswater,bayswater,North-Eastern Metropolitan
+assembly,district,Bellarine,bellarine,Western Victoria
+assembly,district,Benambra,benambra,Northern Victoria
+assembly,district,Bendigo East,bendigo-east,Northern Victoria
+assembly,district,Bendigo West,bendigo-west,Northern Victoria
+assembly,district,Bentleigh,bentleigh,Southern Metropolitan
+assembly,district,Berwick,berwick,South-Eastern Metropolitan
+assembly,district,Box Hill,box-hill,North-Eastern Metropolitan
+assembly,district,Brighton,brighton,Southern Metropolitan
+assembly,district,Broadmeadows,broadmeadows,Northern Metropolitan
+assembly,district,Brunswick,brunswick,Northern Metropolitan
+assembly,district,Bulleen,bulleen,North-Eastern Metropolitan
+assembly,district,Bundoora,bundoora,North-Eastern Metropolitan
+assembly,district,Carrum,carrum,South-Eastern Metropolitan
+assembly,district,Caulfield,caulfield,Southern Metropolitan
+assembly,district,Clarinda,clarinda,South-Eastern Metropolitan
+assembly,district,Cranbourne,cranbourne,South-Eastern Metropolitan
+assembly,district,Croydon,croydon,North-Eastern Metropolitan
+assembly,district,Dandenong,dandenong,South-Eastern Metropolitan
+assembly,district,Eildon,eildon,Northern Victoria
+assembly,district,Eltham,eltham,North-Eastern Metropolitan
+assembly,district,Essendon,essendon,Northern Metropolitan
+assembly,district,Eureka,eureka,Western Victoria
+assembly,district,Euroa,euroa,Northern Victoria
+assembly,district,Evelyn,evelyn,Eastern Victoria
+assembly,district,Footscray,footscray,Western Metropolitan
+assembly,district,Frankston,frankston,South-Eastern Metropolitan
+assembly,district,Geelong,geelong,Western Victoria
+assembly,district,Gippsland East,gippsland-east,Eastern Victoria
+assembly,district,Gippsland South,gippsland-south,Eastern Victoria
+assembly,district,Glen Waverley,glen-waverley,North-Eastern Metropolitan
+assembly,district,Greenvale,greenvale,Northern Metropolitan
+assembly,district,Hastings,hastings,Eastern Victoria
+assembly,district,Hawthorn,hawthorn,Southern Metropolitan
+assembly,district,Ivanhoe,ivanhoe,North-Eastern Metropolitan
+assembly,district,Kalkallo,kalkallo,Northern Metropolitan
+assembly,district,Kew,kew,Southern Metropolitan
+assembly,district,Kororoit,kororoit,Western Metropolitan
+assembly,district,Lara,lara,Western Victoria
+assembly,district,Laverton,laverton,Western Metropolitan
+assembly,district,Lowan,lowan,Western Victoria
+assembly,district,Macedon,macedon,Northern Victoria
+assembly,district,Malvern,malvern,Southern Metropolitan
+assembly,district,Melbourne,melbourne,Northern Metropolitan
+assembly,district,Melton,melton,Western Victoria
+assembly,district,Mildura,mildura,Northern Victoria
+assembly,district,Mill Park,mill-park,North-Eastern Metropolitan
+assembly,district,Monbulk,monbulk,Eastern Victoria
+assembly,district,Mordialloc,mordialloc,South-Eastern Metropolitan
+assembly,district,Mornington,mornington,Eastern Victoria
+assembly,district,Morwell,morwell,Eastern Victoria
+assembly,district,Mulgrave,mulgrave,South-Eastern Metropolitan
+assembly,district,Murray Plains,murray-plains,Northern Victoria
+assembly,district,Narracan,narracan,Eastern Victoria
+assembly,district,Narre Warren North,narre-warren-north,South-Eastern Metropolitan
+assembly,district,Narre Warren South,narre-warren-south,South-Eastern Metropolitan
+assembly,district,Nepean,nepean,Eastern Victoria
+assembly,district,Niddrie,niddrie,Western Metropolitan
+assembly,district,Northcote,northcote,Northern Metropolitan
+assembly,district,Oakleigh,oakleigh,Southern Metropolitan
+assembly,district,Ovens Valley,ovens-valley,Northern Victoria
+assembly,district,Pakenham,pakenham,Eastern Victoria
+assembly,district,Pascoe Vale,pascoe-vale,Northern Metropolitan
+assembly,district,Point Cook,point-cook,Western Metropolitan
+assembly,district,Polwarth,polwarth,Western Victoria
+assembly,district,Prahran,prahran,Southern Metropolitan
+assembly,district,Preston,preston,Northern Metropolitan
+assembly,district,Richmond,richmond,Northern Metropolitan
+assembly,district,Ringwood,ringwood,North-Eastern Metropolitan
+assembly,district,Ripon,ripon,Western Victoria
+assembly,district,Rowville,rowville,South-Eastern Metropolitan
+assembly,district,Sandringham,sandringham,Southern Metropolitan
+assembly,district,Shepparton,shepparton,Northern Victoria
+assembly,district,South Barwon,south-barwon,Western Victoria
+assembly,district,South-West Coast,south-west-coast,Western Victoria
+assembly,district,St Albans,st-albans,Western Metropolitan
+assembly,district,Sunbury,sunbury,Western Metropolitan
+assembly,district,Sydenham,sydenham,Western Metropolitan
+assembly,district,Tarneit,tarneit,Western Metropolitan
+assembly,district,Thomastown,thomastown,Northern Metropolitan
+assembly,district,Warrandyte,warrandyte,North-Eastern Metropolitan
+assembly,district,Wendouree,wendouree,Western Victoria
+assembly,district,Werribee,werribee,Western Metropolitan
+assembly,district,Williamstown,williamstown,Western Metropolitan
+assembly,district,Yan Yean,yan-yean,Northern Victoria

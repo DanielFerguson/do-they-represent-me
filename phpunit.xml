@@ -26,6 +26,7 @@
         <env name="DB_CONNECTION" value="pgsql"/>
         <env name="DB_DATABASE" value="do_they_represent_me_testing"/>
         <env name="DB_URL" value=""/>
+        <env name="PARLIAMENT_VIC_REQUEST_DELAY_MS" value="0"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

@@ -10,7 +10,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property Carbon $starts_on
+ * @property Carbon|null $ends_on
+ */
 #[Fillable(['member_id', 'house_id', 'electorate_id', 'party_id', 'starts_on', 'ends_on', 'start_reason', 'end_reason'])]
 class Membership extends Model
 {

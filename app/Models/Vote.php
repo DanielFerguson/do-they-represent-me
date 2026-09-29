@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['division_id', 'member_id', 'party_id', 'vote'])]
+#[Fillable(['division_id', 'member_id', 'party_id', 'vote', 'is_teller'])]
 class Vote extends Model
 {
     /** @use HasFactory<VoteFactory> */
@@ -50,6 +50,7 @@ class Vote extends Model
     {
         return [
             'vote' => VoteValue::class,
+            'is_teller' => 'boolean',
         ];
     }
 }

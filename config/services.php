@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'parliament_vic' => [
+        'base_url' => 'https://www.parliament.vic.gov.au',
+        'allowed_hosts' => ['www.parliament.vic.gov.au', 'parliament.vic.gov.au'],
+        'user_agent' => 'DoTheyRepresentMe/1.0 (+'.env('APP_URL', 'http://localhost').')',
+        'max_document_bytes' => 20 * 1024 * 1024,
+        'request_delay_ms' => (int) env('PARLIAMENT_VIC_REQUEST_DELAY_MS', 1000),
+    ],
+
 ];
