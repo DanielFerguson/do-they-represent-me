@@ -2,7 +2,9 @@
 
 use App\Domain\VicParliament\ParliamentClient;
 use App\Enums\DivisionStage;
+use App\Enums\PartyPosition;
 use App\Models\Division;
+use App\Models\DivisionPartyPosition;
 use App\Models\ProceedingsDocument;
 use App\Models\UnresolvedName;
 use App\Models\Vote;
@@ -86,6 +88,23 @@ it('records each vote against the member\'s party on the day', function () {
     $vote = Vote::query()->whereHas('member', fn ($query) => $query->where('slug', 'jacinta-allan'))->with('party')->firstOrFail();
 
     expect($vote->party->short_name)->toBe('ALP');
+});
+
+it('recalculates each party\'s position after importing', function () {
+    fakeParliament();
+
+    $this->artisan('vic:sync-proceedings --house=assembly')->assertSuccessful();
+
+    $first = Division::query()->where('sitting_date', '2025-07-29')->orderBy('sequence')->firstOrFail();
+
+    expect($first->partyPositions()->with('party')->get()->mapWithKeys(fn (DivisionPartyPosition $position) => [
+        $position->party->short_name => [$position->ayes, $position->noes, $position->eligible, $position->position],
+    ])->sortKeys()->all())->toBe([
+        'ALP' => [0, 49, 53, PartyPosition::No],
+        'GRN' => [3, 0, 3, PartyPosition::Aye],
+        'LIB' => [20, 0, 20, PartyPosition::Aye],
+        'NAT' => [9, 0, 9, PartyPosition::Aye],
+    ]);
 });
 
 it('classifies stages and keeps the raw documents', function () {

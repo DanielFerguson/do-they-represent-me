@@ -2,7 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Enums\ElectorateKind;
 use App\Models\Electorate;
+use App\Models\House;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +20,10 @@ class ElectorateFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'house_id' => House::factory(),
+            'kind' => ElectorateKind::District,
+            'name' => fake()->unique()->city(),
+            'slug' => fake()->unique()->slug(2),
         ];
     }
 }

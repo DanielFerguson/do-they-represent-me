@@ -85,6 +85,16 @@ class Division extends Model
     }
 
     /**
+     * The division's public reference, e.g. "LC-60-025-01": house, parliament,
+     * sitting number and the division's order within that sitting. Needs the
+     * house and parliament relations loaded.
+     */
+    public function reference(): string
+    {
+        return sprintf('%s-%d-%03d-%02d', $this->house->short_name, $this->parliament->number, $this->sitting_number, $this->sequence);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

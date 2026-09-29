@@ -18,7 +18,12 @@ class HouseFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'slug' => fake()->unique()->slug(2),
+            'name' => fake()->words(2, true),
+            'short_name' => strtoupper(fake()->unique()->lexify('???')),
+            'hansard_code' => fake()->unique()->numberBetween(100, 9999),
+            'papers_code' => fake()->unique()->numberBetween(100, 9999),
+            'seats' => 10,
         ];
     }
 }

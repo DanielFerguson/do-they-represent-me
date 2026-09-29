@@ -18,7 +18,19 @@ class PartyFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name' => fake()->unique()->company(),
+            'short_name' => fake()->unique()->lexify('???'),
+            'slug' => fake()->unique()->slug(2),
+            'colour' => null,
+            'is_whipless' => false,
         ];
+    }
+
+    /**
+     * Members who sit without a party whip, such as independents.
+     */
+    public function whipless(): static
+    {
+        return $this->state(['is_whipless' => true]);
     }
 }

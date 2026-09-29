@@ -67,12 +67,16 @@ class SyncProceedings extends Command
         }
 
         if ($this->option('queue')) {
-            $this->info('Imports queued.');
+            $this->info('Imports queued. Run vic:score once the queue has finished.');
 
             return self::SUCCESS;
         }
 
         $this->table(array_keys($totals), [array_values($totals)]);
+
+        if ($totals['imported'] > 0) {
+            $this->call('vic:score');
+        }
 
         return $totals['failed'] > 0 ? self::FAILURE : self::SUCCESS;
     }

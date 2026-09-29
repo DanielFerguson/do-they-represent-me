@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property VoteValue $direction
+ * @property bool $is_strong
+ */
 #[Fillable(['policy_id', 'division_id', 'direction', 'is_strong', 'rationale'])]
 class PolicyDivision extends Model
 {

@@ -18,7 +18,9 @@ class ParliamentFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'number' => fake()->unique()->numberBetween(61, 30000),
+            'starts_on' => '2022-11-26',
+            'ends_on' => null,
         ];
     }
 }

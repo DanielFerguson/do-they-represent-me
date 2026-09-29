@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\PolicyStatus;
-use App\Enums\VoteValue;
 use Database\Factories\PolicyFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -13,8 +12,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
-#[Fillable(['slug', 'title', 'question', 'description', 'rationale', 'topic', 'agree_means', 'status', 'published_at'])]
+/**
+ * @property PolicyStatus $status
+ * @property Carbon|null $published_at
+ */
+#[Fillable(['number', 'slug', 'title', 'question', 'description', 'rationale', 'arguments_for', 'arguments_against', 'sources', 'verification_notes', 'reviewer_notes', 'topic', 'agree_means', 'status', 'published_at'])]
 class Policy extends Model
 {
     /** @use HasFactory<PolicyFactory> */
@@ -61,7 +65,6 @@ class Policy extends Model
     protected function casts(): array
     {
         return [
-            'agree_means' => VoteValue::class,
             'status' => PolicyStatus::class,
             'published_at' => 'datetime',
         ];

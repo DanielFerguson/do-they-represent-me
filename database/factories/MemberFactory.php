@@ -18,7 +18,10 @@ class MemberFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'first_name' => $firstName = fake()->firstName(),
+            'last_name' => $lastName = fake()->lastName(),
+            'display_name' => "{$firstName} {$lastName}",
+            'slug' => fake()->unique()->slug(3),
         ];
     }
 }

@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property PartyPosition $position
+ */
 #[Fillable(['division_id', 'party_id', 'ayes', 'noes', 'eligible', 'position'])]
 class DivisionPartyPosition extends Model
 {

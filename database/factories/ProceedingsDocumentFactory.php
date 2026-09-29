@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\House;
 use App\Models\ProceedingsDocument;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -18,7 +19,10 @@ class ProceedingsDocumentFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'house_id' => House::factory(),
+            'source_key' => fake()->unique()->bothify('house-paper-####'),
+            'title' => 'Votes and Proceedings',
+            'docx_url' => fake()->url(),
         ];
     }
 }

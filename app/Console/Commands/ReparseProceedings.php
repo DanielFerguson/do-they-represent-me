@@ -35,6 +35,7 @@ class ReparseProceedings extends Command
 
         $this->newLine(2);
         $this->table(array_keys($totals), [array_values($totals)]);
+        $this->call('vic:score');
 
         return $totals['failed'] > 0 ? self::FAILURE : self::SUCCESS;
     }
