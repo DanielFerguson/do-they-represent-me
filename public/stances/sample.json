@@ -1,0 +1,1039 @@
+{
+ "version": "sample-2026-09-29",
+ "sample": true,
+ "data_as_of": "2026-09-24",
+ "parties": [
+  {
+   "code": "ALP",
+   "short_name": "Labor",
+   "name": "Australian Labor Party"
+  },
+  {
+   "code": "LIB",
+   "short_name": "Liberal",
+   "name": "Liberal Party"
+  },
+  {
+   "code": "NAT",
+   "short_name": "Nationals",
+   "name": "The Nationals"
+  },
+  {
+   "code": "GRN",
+   "short_name": "Greens",
+   "name": "Australian Greens"
+  },
+  {
+   "code": "LCV",
+   "short_name": "Legalise Cannabis",
+   "name": "Legalise Cannabis Victoria"
+  },
+  {
+   "code": "AJP",
+   "short_name": "Animal Justice",
+   "name": "Animal Justice Party"
+  },
+  {
+   "code": "SFF",
+   "short_name": "Shooters, Fishers and Farmers",
+   "name": "Shooters, Fishers and Farmers Party"
+  },
+  {
+   "code": "LBT",
+   "short_name": "Libertarian",
+   "name": "Libertarian Party"
+  },
+  {
+   "code": "ONP",
+   "short_name": "One Nation",
+   "name": "Pauline Hanson's One Nation"
+  },
+  {
+   "code": "FFV",
+   "short_name": "Family First",
+   "name": "Family First Victoria"
+  }
+ ],
+ "policies": [
+  {
+   "id": 1,
+   "slug": "short-stay-accommodation-levy",
+   "topic": "Housing & cost of living",
+   "title": "Short-stay accommodation levy",
+   "question": "Should short-stay accommodation bookings (such as Airbnb and Stayz) be charged a state levy?",
+   "stances": {
+    "ALP": {
+     "agreement": 1.0,
+     "votes": 4
+    },
+    "LIB": {
+     "agreement": 0.0,
+     "votes": 4
+    },
+    "NAT": {
+     "agreement": 0.0,
+     "votes": 4
+    },
+    "GRN": {
+     "agreement": 1.0,
+     "votes": 4
+    },
+    "LCV": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "AJP": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "SFF": {
+     "agreement": 0.0,
+     "votes": 1
+    },
+    "LBT": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "ONP": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "FFV": {
+     "agreement": 0.0,
+     "votes": 1
+    }
+   }
+  },
+  {
+   "id": 2,
+   "slug": "age-of-criminal-responsibility",
+   "topic": "Justice & community safety",
+   "title": "Age of criminal responsibility",
+   "question": "Should the minimum age of criminal responsibility be raised above 10?",
+   "stances": {
+    "ALP": {
+     "agreement": 1.0,
+     "votes": 4
+    },
+    "LIB": {
+     "agreement": 0.0,
+     "votes": 4
+    },
+    "NAT": {
+     "agreement": 0.0,
+     "votes": 4
+    },
+    "GRN": {
+     "agreement": 1.0,
+     "votes": 4
+    },
+    "LCV": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "AJP": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "SFF": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "LBT": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "ONP": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "FFV": {
+     "agreement": 0.0,
+     "votes": 2
+    }
+   }
+  },
+  {
+   "id": 3,
+   "slug": "tougher-bail-laws",
+   "topic": "Justice & community safety",
+   "title": "Tougher bail laws",
+   "question": "Should bail laws be tightened so that more people accused of serious or repeat offences are held in custody before trial?",
+   "stances": {
+    "ALP": {
+     "agreement": 1.0,
+     "votes": 4
+    },
+    "LIB": {
+     "agreement": 1.0,
+     "votes": 4
+    },
+    "NAT": {
+     "agreement": 1.0,
+     "votes": 4
+    },
+    "GRN": {
+     "agreement": 0.0,
+     "votes": 4
+    },
+    "LCV": {
+     "agreement": 0.0,
+     "votes": 4
+    },
+    "AJP": {
+     "agreement": 0.0,
+     "votes": 4
+    },
+    "SFF": {
+     "agreement": 1.0,
+     "votes": 4
+    },
+    "LBT": {
+     "agreement": 1.0,
+     "votes": 4
+    },
+    "ONP": {
+     "agreement": 1.0,
+     "votes": 4
+    },
+    "FFV": {
+     "agreement": 1.0,
+     "votes": 4
+    }
+   }
+  },
+  {
+   "id": 4,
+   "slug": "medically-supervised-injecting-room",
+   "topic": "Health & drugs",
+   "title": "Medically supervised injecting room",
+   "question": "Should the North Richmond medically supervised injecting room continue operating on an ongoing basis?",
+   "stances": {
+    "ALP": {
+     "agreement": 1.0,
+     "votes": 3
+    },
+    "LIB": {
+     "agreement": 0.0,
+     "votes": 3
+    },
+    "NAT": {
+     "agreement": 0.0,
+     "votes": 3
+    },
+    "GRN": {
+     "agreement": 1.0,
+     "votes": 3
+    },
+    "LCV": {
+     "agreement": 1.0,
+     "votes": 3
+    },
+    "AJP": {
+     "agreement": 1.0,
+     "votes": 3
+    },
+    "SFF": {
+     "agreement": 0.0,
+     "votes": 3
+    },
+    "LBT": {
+     "agreement": 0.857,
+     "votes": 3
+    },
+    "ONP": {
+     "agreement": 0.0,
+     "votes": 3
+    },
+    "FFV": {
+     "agreement": null,
+     "votes": 1
+    }
+   }
+  },
+  {
+   "id": 5,
+   "slug": "emergency-services-and-volunteers-fund",
+   "topic": "Tax & state finances",
+   "title": "Emergency Services and Volunteers Fund",
+   "question": "Should the fire services property levy be replaced by a broader Emergency Services and Volunteers Fund levy on property owners?",
+   "stances": {
+    "ALP": {
+     "agreement": 1.0,
+     "votes": 3
+    },
+    "LIB": {
+     "agreement": 0.0,
+     "votes": 3
+    },
+    "NAT": {
+     "agreement": 0.0,
+     "votes": 3
+    },
+    "GRN": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "LCV": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "AJP": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "SFF": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "LBT": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "ONP": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "FFV": {
+     "agreement": 0.0,
+     "votes": 2
+    }
+   }
+  },
+  {
+   "id": 6,
+   "slug": "publicly-owned-sec-in-the-constitution",
+   "topic": "Energy & climate",
+   "title": "Publicly owned SEC in the Constitution",
+   "question": "Should public ownership of the State Electricity Commission be protected in the Victorian Constitution?",
+   "stances": {
+    "ALP": {
+     "agreement": 1.0,
+     "votes": 3
+    },
+    "LIB": {
+     "agreement": 0.0,
+     "votes": 3
+    },
+    "NAT": {
+     "agreement": 0.0,
+     "votes": 3
+    },
+    "GRN": {
+     "agreement": 1.0,
+     "votes": 3
+    },
+    "LCV": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "AJP": {
+     "agreement": 1.0,
+     "votes": 1
+    },
+    "SFF": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "LBT": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "ONP": {
+     "agreement": 0.0,
+     "votes": 1
+    },
+    "FFV": {
+     "agreement": 0.0,
+     "votes": 2
+    }
+   }
+  },
+  {
+   "id": 7,
+   "slug": "legislated-renewable-energy-targets",
+   "topic": "Energy & climate",
+   "title": "Legislated renewable energy targets",
+   "question": "Should Victoria's renewable energy and energy storage targets be written into law?",
+   "stances": {
+    "ALP": {
+     "agreement": null,
+     "votes": 0
+    },
+    "LIB": {
+     "agreement": null,
+     "votes": 0
+    },
+    "NAT": {
+     "agreement": null,
+     "votes": 0
+    },
+    "GRN": {
+     "agreement": null,
+     "votes": 0
+    },
+    "LCV": {
+     "agreement": null,
+     "votes": 0
+    },
+    "AJP": {
+     "agreement": null,
+     "votes": 0
+    },
+    "SFF": {
+     "agreement": null,
+     "votes": 0
+    },
+    "LBT": {
+     "agreement": null,
+     "votes": 0
+    },
+    "ONP": {
+     "agreement": null,
+     "votes": 0
+    },
+    "FFV": {
+     "agreement": null,
+     "votes": 0
+    }
+   }
+  },
+  {
+   "id": 8,
+   "slug": "transmission-line-planning-powers-vicgrid",
+   "topic": "Energy & climate",
+   "title": "Transmission line planning powers (VicGrid)",
+   "question": "Should VicGrid be given powers to plan new transmission lines and renewable energy zones, including access to private land?",
+   "stances": {
+    "ALP": {
+     "agreement": 1.0,
+     "votes": 3
+    },
+    "LIB": {
+     "agreement": 0.0,
+     "votes": 3
+    },
+    "NAT": {
+     "agreement": 0.0,
+     "votes": 3
+    },
+    "GRN": {
+     "agreement": 1.0,
+     "votes": 3
+    },
+    "LCV": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "AJP": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "SFF": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "LBT": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "ONP": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "FFV": {
+     "agreement": 0.0,
+     "votes": 2
+    }
+   }
+  },
+  {
+   "id": 9,
+   "slug": "nuclear-power",
+   "topic": "Energy & climate",
+   "title": "Nuclear power",
+   "question": "Should Victoria lift its ban on nuclear power?",
+   "stances": {
+    "ALP": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "LIB": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "NAT": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "GRN": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "LCV": {
+     "agreement": 0.0,
+     "votes": 1
+    },
+    "AJP": {
+     "agreement": 0.0,
+     "votes": 1
+    },
+    "SFF": {
+     "agreement": 1.0,
+     "votes": 1
+    },
+    "LBT": {
+     "agreement": 1.0,
+     "votes": 1
+    },
+    "ONP": {
+     "agreement": 1.0,
+     "votes": 1
+    },
+    "FFV": {
+     "agreement": null,
+     "votes": 0
+    }
+   }
+  },
+  {
+   "id": 10,
+   "slug": "end-native-forest-logging",
+   "topic": "Environment",
+   "title": "End native forest logging",
+   "question": "Should native forest logging in Victoria end permanently?",
+   "stances": {
+    "ALP": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "LIB": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "NAT": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "GRN": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "LCV": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "AJP": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "SFF": {
+     "agreement": null,
+     "votes": 0
+    },
+    "LBT": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "ONP": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "FFV": {
+     "agreement": 0.0,
+     "votes": 2
+    }
+   }
+  },
+  {
+   "id": 11,
+   "slug": "new-central-west-national-parks",
+   "topic": "Environment",
+   "title": "New Central West national parks",
+   "question": "Should new national parks be created in Victoria's Central West (such as Wombat–Lerderderg)?",
+   "stances": {
+    "ALP": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "LIB": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "NAT": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "GRN": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "LCV": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "AJP": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "SFF": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "LBT": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "ONP": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "FFV": {
+     "agreement": 0.0,
+     "votes": 2
+    }
+   }
+  },
+  {
+   "id": 12,
+   "slug": "outdoor-recreation-hunting-and-fishing",
+   "topic": "Environment",
+   "title": "Outdoor recreation, hunting and fishing",
+   "question": "Should a new state body be set up to promote and manage outdoor recreation, including hunting and fishing?",
+   "stances": {
+    "ALP": {
+     "agreement": 1.0,
+     "votes": 5
+    },
+    "LIB": {
+     "agreement": 1.0,
+     "votes": 5
+    },
+    "NAT": {
+     "agreement": 1.0,
+     "votes": 5
+    },
+    "GRN": {
+     "agreement": 0.0,
+     "votes": 5
+    },
+    "LCV": {
+     "agreement": 0.0,
+     "votes": 4
+    },
+    "AJP": {
+     "agreement": 0.0,
+     "votes": 4
+    },
+    "SFF": {
+     "agreement": 1.0,
+     "votes": 4
+    },
+    "LBT": {
+     "agreement": 1.0,
+     "votes": 4
+    },
+    "ONP": {
+     "agreement": 1.0,
+     "votes": 4
+    },
+    "FFV": {
+     "agreement": 1.0,
+     "votes": 3
+    }
+   }
+  },
+  {
+   "id": 13,
+   "slug": "expanded-anti-vilification-laws",
+   "topic": "Rights & social cohesion",
+   "title": "Expanded anti-vilification laws",
+   "question": "Should anti-vilification laws be expanded to protect more groups (for example, based on disability, gender identity or sexual orientation)?",
+   "stances": {
+    "ALP": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "LIB": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "NAT": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "GRN": {
+     "agreement": 1.0,
+     "votes": 1
+    },
+    "LCV": {
+     "agreement": 1.0,
+     "votes": 1
+    },
+    "AJP": {
+     "agreement": 1.0,
+     "votes": 1
+    },
+    "SFF": {
+     "agreement": 0.0,
+     "votes": 1
+    },
+    "LBT": {
+     "agreement": 0.0,
+     "votes": 1
+    },
+    "ONP": {
+     "agreement": 0.0,
+     "votes": 1
+    },
+    "FFV": {
+     "agreement": 0.0,
+     "votes": 1
+    }
+   }
+  },
+  {
+   "id": 14,
+   "slug": "statewide-treaty",
+   "topic": "First Peoples",
+   "title": "Statewide Treaty",
+   "question": "Should Victoria enter a statewide Treaty with First Peoples?",
+   "stances": {
+    "ALP": {
+     "agreement": 1.0,
+     "votes": 3
+    },
+    "LIB": {
+     "agreement": 0.0,
+     "votes": 3
+    },
+    "NAT": {
+     "agreement": 0.0,
+     "votes": 3
+    },
+    "GRN": {
+     "agreement": 1.0,
+     "votes": 3
+    },
+    "LCV": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "AJP": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "SFF": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "LBT": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "ONP": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "FFV": {
+     "agreement": 0.0,
+     "votes": 2
+    }
+   }
+  },
+  {
+   "id": 15,
+   "slug": "covid-debt-levy",
+   "topic": "Tax & state finances",
+   "title": "COVID debt levy",
+   "question": "Should payroll tax and land tax be temporarily increased to help pay down Victoria's COVID-19 debt?",
+   "stances": {
+    "ALP": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "LIB": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "NAT": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "GRN": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "LCV": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "AJP": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "SFF": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "LBT": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "ONP": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "FFV": {
+     "agreement": null,
+     "votes": 0
+    }
+   }
+  },
+  {
+   "id": 16,
+   "slug": "workcover-changes",
+   "topic": "Work & industrial relations",
+   "title": "WorkCover changes",
+   "question": "Should WorkCover eligibility for mental injury claims be narrowed to reduce the scheme's costs?",
+   "stances": {
+    "ALP": {
+     "agreement": 1.0,
+     "votes": 3
+    },
+    "LIB": {
+     "agreement": 0.545,
+     "votes": 3
+    },
+    "NAT": {
+     "agreement": 0.545,
+     "votes": 3
+    },
+    "GRN": {
+     "agreement": 0.0,
+     "votes": 3
+    },
+    "LCV": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "AJP": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "SFF": {
+     "agreement": null,
+     "votes": 0
+    },
+    "LBT": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "ONP": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "FFV": {
+     "agreement": 1.0,
+     "votes": 1
+    }
+   }
+  },
+  {
+   "id": 17,
+   "slug": "public-housing-towers",
+   "topic": "Housing & cost of living",
+   "title": "Public housing towers",
+   "question": "Should evictions from Melbourne's public housing towers be paused while redevelopment plans are reviewed?",
+   "stances": {
+    "ALP": {
+     "agreement": null,
+     "votes": 1
+    },
+    "LIB": {
+     "agreement": null,
+     "votes": 1
+    },
+    "NAT": {
+     "agreement": null,
+     "votes": 1
+    },
+    "GRN": {
+     "agreement": null,
+     "votes": 1
+    },
+    "LCV": {
+     "agreement": null,
+     "votes": 1
+    },
+    "AJP": {
+     "agreement": null,
+     "votes": 1
+    },
+    "SFF": {
+     "agreement": null,
+     "votes": 0
+    },
+    "LBT": {
+     "agreement": null,
+     "votes": 1
+    },
+    "ONP": {
+     "agreement": null,
+     "votes": 1
+    },
+    "FFV": {
+     "agreement": null,
+     "votes": 0
+    }
+   }
+  },
+  {
+   "id": 18,
+   "slug": "protest-registration-and-face-covering-ban",
+   "topic": "Rights & social cohesion",
+   "title": "Protest registration and face-covering ban",
+   "question": "Should protests require registration, with face coverings banned at protests?",
+   "stances": {
+    "ALP": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "LIB": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "NAT": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "GRN": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "LCV": {
+     "agreement": 0.0,
+     "votes": 1
+    },
+    "AJP": {
+     "agreement": 0.0,
+     "votes": 1
+    },
+    "SFF": {
+     "agreement": null,
+     "votes": 0
+    },
+    "LBT": {
+     "agreement": 0.0,
+     "votes": 1
+    },
+    "ONP": {
+     "agreement": 1.0,
+     "votes": 1
+    },
+    "FFV": {
+     "agreement": 1.0,
+     "votes": 1
+    }
+   }
+  },
+  {
+   "id": 19,
+   "slug": "voluntary-assisted-dying-conscience-vote",
+   "topic": "Health & drugs",
+   "title": "Voluntary assisted dying (conscience vote)",
+   "question": "Should access to voluntary assisted dying be expanded?",
+   "stances": {
+    "ALP": {
+     "agreement": 1.0,
+     "votes": 3
+    },
+    "LIB": {
+     "agreement": 0.455,
+     "votes": 3
+    },
+    "NAT": {
+     "agreement": 0.833,
+     "votes": 2
+    },
+    "GRN": {
+     "agreement": 1.0,
+     "votes": 3
+    },
+    "LCV": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "AJP": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "SFF": {
+     "agreement": 0.0,
+     "votes": 2
+    },
+    "LBT": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "ONP": {
+     "agreement": 1.0,
+     "votes": 2
+    },
+    "FFV": {
+     "agreement": 0.0,
+     "votes": 2
+    }
+   }
+  },
+  {
+   "id": 20,
+   "slug": "no-new-coal-and-gas-projects",
+   "topic": "Energy & climate",
+   "title": "No new coal and gas projects",
+   "question": "Should Victoria stop approving new coal and gas projects?",
+   "stances": {
+    "ALP": {
+     "agreement": null,
+     "votes": 1
+    },
+    "LIB": {
+     "agreement": null,
+     "votes": 1
+    },
+    "NAT": {
+     "agreement": null,
+     "votes": 1
+    },
+    "GRN": {
+     "agreement": null,
+     "votes": 1
+    },
+    "LCV": {
+     "agreement": null,
+     "votes": 1
+    },
+    "AJP": {
+     "agreement": null,
+     "votes": 1
+    },
+    "SFF": {
+     "agreement": null,
+     "votes": 1
+    },
+    "LBT": {
+     "agreement": null,
+     "votes": 1
+    },
+    "ONP": {
+     "agreement": null,
+     "votes": 1
+    },
+    "FFV": {
+     "agreement": null,
+     "votes": 1
+    }
+   }
+  }
+ ]
+}
