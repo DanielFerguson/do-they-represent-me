@@ -16,7 +16,7 @@ How *Do They Represent Me?* turns the Parliament of Victoria's records into quiz
 | Curated reference data: houses, parties, electorates, members, dated memberships, name aliases | `database/data/*.csv` | Edited by hand and loaded with `vic:import-data`. |
 | Raw proceedings documents | the default storage disk, under `proceedings/{house}/` | In production this is the private Laravel Cloud bucket. |
 | Policy workbook: questions, linked votes, review log and sources | the default storage disk, at `policy-research/policy-workbook-v2.xlsx` | It is the only place policy text is edited. |
-| Curation brief, report, working data and scripts | `storage/app/private/policy-research/` | Git-ignored, because it holds draft questions still under review. |
+| Curation brief, report, working data and scripts | `storage/app/private/policy-research/` locally; `policy-research/` in the private bucket | Git-ignored, because it holds draft questions still under review. The bucket holds the workbook, `REPORT.md`, `TASK.md` and a dated snapshot of the whole folder: `policy-research/archive/policy-research-2026-09-30.tar.gz` (SHA-256 `e37fe22f…93dc7b5`). |
 
 ## Rebuilding the results from scratch
 
