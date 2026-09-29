@@ -1,54 +1,42 @@
-# React + TypeScript + Vite
+# Do They Represent Me? — Victoria
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A neutral tool for the 2026 Victorian state election. Answer a set of policy questions and see how Victorian parties and your local MPs actually voted in the Parliament of Victoria.
 
-Currently, two official plugins are available:
+It is also a small "TheyVoteForYou for Victoria": a Laravel pipeline that ingests Legislative Assembly and Legislative Council divisions from Hansard, then scores members and parties against curated policies.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+> The original federal version (built on the TheyVoteForYou API) is preserved at the `v1-federal` tag.
 
-## Expanding the ESLint configuration
+## Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Laravel 13 / PHP 8.5, hosted on Laravel Cloud (Serverless Postgres, KV Store, Bucket, managed queues, scheduler)
+- Public site: Blade + Alpine (CSP build) + Tailwind 4
+- Curation: Filament 5 at `/admin` (allowlisted, MFA required)
+- Tests: Pest 5 · Static analysis: Larastan · Style: Pint
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Local development
+
+Requires PHP 8.5, Composer, Node 24 + pnpm, and Postgres (Herd provides all of these).
+
+```bash
+composer install
+pnpm install
+cp .env.example .env && php artisan key:generate
+createdb do_they_represent_me && createdb do_they_represent_me_testing
+php artisan migrate
+composer run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Set `ADMIN_EMAILS` in `.env` to allow a curator into `/admin`, then create the account with `php artisan make:filament-user`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Checks
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```bash
+php artisan test --compact
+vendor/bin/pint --test
+vendor/bin/phpstan analyse
+composer audit && pnpm audit --prod
 ```
+
+## Data & licensing
+
+Voting records are sourced from Parliament of Victoria Hansard. Every division links back to its source.
