@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-#[Fillable(['name', 'short_name', 'slug', 'colour', 'is_whipless'])]
+#[Fillable(['name', 'short_name', 'display_name', 'slug', 'colour', 'is_whipless'])]
 class Party extends Model
 {
     /** @use HasFactory<PartyFactory> */

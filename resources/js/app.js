@@ -10,7 +10,7 @@ import {
     loadProgress,
     saveProgress,
     scoreParties,
-    stanceLabel,
+    stanceText,
 } from './quiz';
 
 async function fetchStances(url) {
@@ -31,15 +31,17 @@ Alpine.data('quiz', () => ({
     answers: {},
     announcement: '',
     resultsUrl: '',
+    storageKey: '',
 
     async init() {
         this.resultsUrl = this.$el.dataset.resultsUrl;
+        this.storageKey = this.$el.dataset.storageKey;
 
         try {
             this.data = await fetchStances(this.$el.dataset.stancesUrl);
 
             const fromLink = answersFromHash(window.location.hash);
-            const saved = loadProgress(this.data.version);
+            const saved = loadProgress(this.storageKey, this.data.version);
 
             if (Object.keys(fromLink).length) {
                 this.answers = fromLink;
@@ -153,7 +155,7 @@ Alpine.data('quiz', () => ({
     },
 
     save() {
-        saveProgress(this.data.version, this.answers, this.index);
+        saveProgress(this.storageKey, this.data.version, this.answers, this.index);
     },
 
     announce() {
@@ -166,7 +168,7 @@ Alpine.data('quiz', () => ({
     },
 
     startAgain() {
-        clearProgress();
+        clearProgress(this.storageKey);
         this.answers = {};
         this.index = 0;
         this.announce();
@@ -180,15 +182,17 @@ Alpine.data('results', () => ({
     answers: {},
     copied: false,
     quizUrl: '',
+    storageKey: '',
 
     async init() {
         this.quizUrl = this.$el.dataset.quizUrl;
+        this.storageKey = this.$el.dataset.storageKey;
 
         try {
             this.data = await fetchStances(this.$el.dataset.stancesUrl);
 
             const fromLink = answersFromHash(window.location.hash);
-            this.answers = Object.keys(fromLink).length ? fromLink : (loadProgress(this.data.version)?.answers ?? {});
+            this.answers = Object.keys(fromLink).length ? fromLink : (loadProgress(this.storageKey, this.data.version)?.answers ?? {});
         } catch {
             this.failed = true;
         } finally {
@@ -242,14 +246,15 @@ Alpine.data('results', () => ({
                     ...policy,
                     yourAnswer: answer.label,
                     parties: this.data.parties.map((party) => {
-                        const agreement = policy.stances[party.code]?.agreement ?? null;
+                        const stance = policy.stances[party.code] ?? null;
+                        const agreement = stance?.agreement ?? null;
                         const comparable = answer.value !== null && agreement !== null;
                         const matches = comparable && 1 - Math.abs(answer.value - agreement) >= 0.5;
 
                         return {
                             code: party.code,
                             name: party.short_name,
-                            stance: stanceLabel(agreement),
+                            stance: stanceText(stance),
                             verdict: comparable ? (matches ? 'Matches you' : 'Differs from you') : '',
                             verdictClass: comparable ? (matches ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-500') : '',
                         };

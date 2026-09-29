@@ -42,4 +42,12 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    /**
+     * A user who has set up an authenticator app, as the admin panel requires.
+     */
+    public function withAppAuthentication(): static
+    {
+        return $this->afterCreating(fn (User $user) => $user->saveAppAuthenticationSecret('JBSWY3DPEHPK3PXP'));
+    }
 }

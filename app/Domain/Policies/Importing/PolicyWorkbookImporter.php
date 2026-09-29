@@ -5,6 +5,8 @@ namespace App\Domain\Policies\Importing;
 use App\Enums\PolicyStatus;
 use App\Enums\VoteValue;
 use App\Models\Division;
+use App\Models\Member;
+use App\Models\Party;
 use App\Models\Policy;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -36,6 +38,10 @@ class PolicyWorkbookImporter
 
         $policies = $this->policies($workbook);
         $links = $this->links($workbook, $policies);
+
+        foreach ($this->displayNotes($workbook, $policies) as $number => $notes) {
+            $policies[$number]['display_notes'] = $notes;
+        }
 
         if ($this->errors !== []) {
             throw new InvalidPolicyWorkbook($this->errors);
@@ -106,6 +112,7 @@ class PolicyWorkbookImporter
                 'sources' => $this->nullable($cells['Sources']),
                 'verification_notes' => $this->nullable($cells['To verify before publishing']),
                 'reviewer_notes' => $this->nullable($cells['Reviewer notes']),
+                'display_notes' => null,
             ];
         }
 
@@ -177,6 +184,62 @@ class PolicyWorkbookImporter
         }
 
         return $links;
+    }
+
+    /**
+     * Notes shown instead of a match figure for particular parties or MPs,
+     * where reviewers found that the weighted figure would misstate a
+     * position. Each names a party (short or full name) or an MP.
+     *
+     * @param  array<int, PolicyRow>  $policies
+     * @return array<int, list<array{subject_type: string, subject_id: int, note: string}>> notes by policy number
+     *
+     * @phpstan-impure
+     */
+    private function displayNotes(PolicyWorkbook $workbook, array $policies): array
+    {
+        $subjects = [
+            ...Party::query()->get()->map(fn (Party $party): array => ['party', $party->id, [$party->short_name, $party->name]]),
+            ...Member::query()->get()->map(fn (Member $member): array => ['member', $member->id, [$member->display_name, $member->slug]]),
+        ];
+        $notes = [];
+
+        foreach ($workbook->displayNotes as $row => $cells) {
+            $cells += array_fill_keys(PolicyWorkbook::REQUIRED_HEADINGS[PolicyWorkbook::DISPLAY_NOTES], '');
+            $number = $this->policyNumber($cells['Policy ID']);
+            $name = $cells['Party or MP'];
+            $matches = array_values(array_filter($subjects, fn (array $subject): bool => in_array(mb_strtolower($name), array_map(mb_strtolower(...), $subject[2]), true)));
+
+            if ($number === null || ! isset($policies[$number])) {
+                $this->errors[] = "Display notes row {$row}: [{$cells['Policy ID']}] is not on the Policies tab.";
+            }
+
+            if ($matches === []) {
+                $this->errors[] = "Display notes row {$row}: no party or MP is called [{$name}].";
+            } elseif (count($matches) > 1) {
+                $this->errors[] = "Display notes row {$row}: [{$name}] matches more than one party or MP. Use a party's short name or an MP's full name.";
+            }
+
+            if ($cells['Note (public)'] === '') {
+                $this->errors[] = "Display notes row {$row}: the note is empty.";
+            }
+
+            if ($number === null || count($matches) !== 1) {
+                continue;
+            }
+
+            [$type, $id] = $matches[0];
+
+            foreach ($notes[$number] ?? [] as $existing) {
+                if ($existing['subject_type'] === $type && $existing['subject_id'] === $id) {
+                    $this->errors[] = "Display notes row {$row}: {$cells['Policy ID']} already has a note for [{$name}].";
+                }
+            }
+
+            $notes[$number][] = ['subject_type' => $type, 'subject_id' => $id, 'note' => $cells['Note (public)']];
+        }
+
+        return $notes;
     }
 
     /**

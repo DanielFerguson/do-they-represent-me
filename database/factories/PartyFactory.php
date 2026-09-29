@@ -20,6 +20,7 @@ class PartyFactory extends Factory
         return [
             'name' => fake()->unique()->company(),
             'short_name' => fake()->unique()->lexify('???'),
+            'display_name' => fake()->unique()->word(),
             'slug' => fake()->unique()->slug(2),
             'colour' => null,
             'is_whipless' => false,

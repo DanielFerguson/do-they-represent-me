@@ -5,7 +5,9 @@ use App\Domain\Policies\Importing\PolicyWorkbook;
 use App\Domain\Policies\Importing\PolicyWorkbookImporter;
 use App\Models\Division;
 use App\Models\House;
+use App\Models\Member;
 use App\Models\Parliament;
+use App\Models\Party;
 use App\Models\Policy;
 
 function importedDivision(): Division
@@ -22,8 +24,9 @@ function importedDivision(): Division
  * @param  array<int, array<string, string>>  $policies
  * @param  array<int, array<string, string>>  $policyVotes
  * @param  array<int, array<string, string>>  $divisions
+ * @param  array<int, array<string, string>>  $displayNotes
  */
-function workbook(array $policies = [], array $policyVotes = [], ?array $divisions = null): PolicyWorkbook
+function workbook(array $policies = [], array $policyVotes = [], ?array $divisions = null, array $displayNotes = []): PolicyWorkbook
 {
     $policy = ['ID' => 'P01', 'Status' => 'Review', 'Policy title' => 'Test policy', 'Question (neutral wording)' => 'Should this pass?'];
     $link = ['Policy ID' => 'P01', 'Division ID' => 'LA-60-092-03', 'Agree when vote is' => 'Aye', 'Strong?' => 'Y'];
@@ -32,6 +35,7 @@ function workbook(array $policies = [], array $policyVotes = [], ?array $divisio
         $policies ?: [2 => $policy],
         $policyVotes ?: [2 => $link],
         $divisions ?? [2 => ['Division ID' => 'LA-60-092-03', 'Ayes' => '54', 'Noes' => '29']],
+        $displayNotes,
     );
 }
 
@@ -91,4 +95,42 @@ it('skips placeholder rows with an ID but no content', function () {
 
     expect($result->policiesByStatus)->toBe(['review' => 1])
         ->and(Policy::query()->pluck('number')->all())->toBe([1]);
+});
+
+it('stores display notes against the party or MP they name', function (string $name, string $type) {
+    importedDivision();
+    $party = Party::factory()->create(['short_name' => 'LBT', 'name' => 'Libertarian Party']);
+    $member = Member::factory()->create(['display_name' => 'David Limbrick', 'slug' => 'david-limbrick']);
+
+    app(PolicyWorkbookImporter::class)->import(workbook(displayNotes: [2 => ['Policy ID' => 'P01', 'Party or MP' => $name, 'Note (public)' => 'Voted for the bill but opposed the closure.']]));
+
+    expect(Policy::query()->sole()->display_notes)->toBe([
+        ['subject_type' => $type, 'subject_id' => $type === 'party' ? $party->id : $member->id, 'note' => 'Voted for the bill but opposed the closure.'],
+    ]);
+})->with([
+    'party by short name' => ['LBT', 'party'],
+    'party by full name' => ['libertarian party', 'party'],
+    'MP by name' => ['David Limbrick', 'member'],
+    'MP by slug' => ['david-limbrick', 'member'],
+]);
+
+it('rejects an invalid display note', function (array $note, string $error) {
+    importedDivision();
+    Party::factory()->create(['short_name' => 'LBT', 'name' => 'Libertarian Party']);
+    Member::factory()->create(['display_name' => 'Libertarian Party']);
+
+    expectRejected(workbook(displayNotes: [2 => [...['Policy ID' => 'P01', 'Party or MP' => 'LBT', 'Note (public)' => 'A note.'], ...$note]]), $error);
+})->with([
+    'policy not on the Policies tab' => [['Policy ID' => 'P09'], 'Display notes row 2: [P09] is not on the Policies tab.'],
+    'nobody by that name' => [['Party or MP' => 'Nobody'], 'Display notes row 2: no party or MP is called [Nobody].'],
+    'a name shared by a party and an MP' => [['Party or MP' => 'Libertarian Party'], 'Display notes row 2: [Libertarian Party] matches more than one party or MP. Use a party\'s short name or an MP\'s full name.'],
+    'an empty note' => [['Note (public)' => ''], 'Display notes row 2: the note is empty.'],
+]);
+
+it('rejects two notes for the same party on one policy', function () {
+    importedDivision();
+    Party::factory()->create(['short_name' => 'LBT']);
+    $note = ['Policy ID' => 'P01', 'Party or MP' => 'LBT', 'Note (public)' => 'A note.'];
+
+    expectRejected(workbook(displayNotes: [2 => $note, 3 => $note]), 'Display notes row 3: P01 already has a note for [LBT].');
 });

@@ -69,6 +69,7 @@ class ReferenceDataImporter
     {
         return $this->each($directory, 'parties.csv', function (array $row): void {
             Party::query()->updateOrCreate(['short_name' => $row['short_name']], [
+                'display_name' => $row['display_name'],
                 'name' => $row['name'],
                 'slug' => $row['slug'],
                 'colour' => $row['colour'] ?: null,

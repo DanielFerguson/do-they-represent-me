@@ -39,6 +39,7 @@ Hansard was considered as the source and rejected. It splits each sitting day in
 | `members.csv` | Every member who sat in the 60th Parliament |
 | `memberships.csv` | One row per continuous stint in one house for one party, with start and end dates. It covers by-elections, resignations, deaths and party changes. |
 | `member_aliases.csv` | Printed spellings that differ from a member's name |
+| `division_date_corrections.csv` | Divisions whose document is dated differently from the vote, each with its source |
 
 ## Fetching
 
@@ -93,7 +94,9 @@ When `vic:import-policies` loads the curated policies, it also checks every link
 ## Known limitations
 
 - **No pairs.** The proceedings do not record pairs, so a missing vote may be a pair, an illness or a choice. Absences are shown but never scored.
-- **One date to correct.** One Council committee division (LC-60-025-01) is dated from the Minutes supplement (22 June 2023), but Hansard records the vote on 20 June 2023. A correction for display is still to be built.
+- **Dates that differ from the document.** One Council committee division (LC-60-025-01) is printed in a Minutes supplement dated 22 June 2023, but Hansard records the vote on 20 June 2023.
+  - Corrections like this are listed, with their source, in `database/data/division_date_corrections.csv`.
+  - They are applied before voters are matched, so everything downstream uses the corrected date: who held a seat, each voter's party, and the dates shown.
 - **Missing committee divisions.** Some committee-stage divisions appear in Hansard but not in the proceedings documents, so they cannot yet be linked to policies.
 - **A double-issued document.** Votes and Proceedings 87–89 of 2024 was issued twice. Divisions are keyed by house, parliament, sitting number and sequence, so the second copy updates the same divisions rather than duplicating them.
 - **Free votes are not detected.** Conscience votes are not flagged automatically yet. Where one is flagged, no party is given a position on it.

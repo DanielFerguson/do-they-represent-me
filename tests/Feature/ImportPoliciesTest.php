@@ -2,34 +2,15 @@
 
 use App\Enums\PolicyStatus;
 use App\Enums\VoteValue;
-use App\Models\Division;
-use App\Models\House;
 use App\Models\Membership;
-use App\Models\Parliament;
+use App\Models\Party;
 use App\Models\Policy;
 use App\Models\PolicyDivision;
+use App\Models\PolicyImport;
 use App\Models\Vote;
 use Illuminate\Support\Facades\Storage;
 
 const WORKBOOK_PATH = 'policy-research/policy-workbook-v2.xlsx';
-
-/**
- * The divisions the fixture workbook links to, with the totals its Divisions tab lists.
- *
- * @return array<string, Division>
- */
-function fixtureWorkbookDivisions(): array
-{
-    $parliament = Parliament::factory()->create(['number' => 60]);
-    $assembly = House::factory()->create(['short_name' => 'LA']);
-    $council = House::factory()->create(['short_name' => 'LC']);
-
-    return [
-        'LA-60-092-02' => Division::factory()->for($parliament)->for($assembly)->create(['sitting_number' => 92, 'sequence' => 2, 'ayes_count' => 29, 'noes_count' => 54]),
-        'LA-60-092-03' => Division::factory()->for($parliament)->for($assembly)->create(['sitting_number' => 92, 'sequence' => 3, 'ayes_count' => 54, 'noes_count' => 29]),
-        'LC-60-025-01' => Division::factory()->for($parliament)->for($council)->create(['sitting_number' => 25, 'sequence' => 1, 'ayes_count' => 20, 'noes_count' => 15]),
-    ];
-}
 
 function storeWorkbook(string $fixture = 'policy-workbook.xlsx'): void
 {
@@ -47,6 +28,10 @@ it('imports each policy with its status, text and linked divisions', function ()
         ['number' => 1, 'slug' => 'first-test-policy', 'status' => PolicyStatus::Review, 'question' => 'Should the first test question pass?', 'topic' => 'Test topic', 'agree_means' => 'Agree = supporting the test bill', 'description' => 'A test description.', 'arguments_for' => 'Supporters said it tests well.', 'arguments_against' => 'Opponents said it is only a test.', 'sources' => 'https://example.test/source', 'verification_notes' => 'UNVERIFIED: nothing', 'reviewer_notes' => null],
         ['number' => 2, 'slug' => 'second-test-policy', 'status' => PolicyStatus::Published, 'question' => 'Should the second test question pass?', 'topic' => 'Other topic', 'agree_means' => 'Agree = supporting the motion', 'description' => 'Another description.', 'arguments_for' => 'For.', 'arguments_against' => 'Against.', 'sources' => null, 'verification_notes' => null, 'reviewer_notes' => 'Reviewer note'],
         ['number' => 3, 'slug' => 'dropped-test-policy', 'status' => PolicyStatus::Dropped, 'question' => '', 'topic' => 'Test topic', 'agree_means' => null, 'description' => null, 'arguments_for' => null, 'arguments_against' => null, 'sources' => null, 'verification_notes' => null, 'reviewer_notes' => null],
+    ]);
+
+    expect(Policy::query()->where('number', 2)->first()->display_notes)->toBe([
+        ['subject_type' => 'party', 'subject_id' => Party::query()->where('name', 'Test Party')->value('id'), 'note' => 'Voted for the motion but opposed its main clause.'],
     ]);
 
     expect(Policy::query()->where('number', 2)->value('published_at'))->not->toBeNull()
@@ -75,6 +60,34 @@ it('recalculates scores after importing', function () {
         'votes_absent' => 1,
         'category' => 'for3',
     ]);
+});
+
+it('records the import and keeps a copy of the workbook named by its hash', function () {
+    fixtureWorkbookDivisions();
+    storeWorkbook();
+    $sha256 = hash('sha256', (string) Storage::get(WORKBOOK_PATH));
+
+    $this->artisan('vic:import-policies')->assertSuccessful();
+
+    $import = PolicyImport::query()->sole();
+    expect($import->sha256)->toBe($sha256)
+        ->and($import->path)->toBe("policy-research/workbooks/{$sha256}.xlsx")
+        ->and($import->user_id)->toBeNull()
+        ->and($import->summary)->toBe(['policies_by_status' => ['review' => 1, 'published' => 1, 'dropped' => 1], 'links' => 3, 'removed' => 0]);
+    Storage::assertExists($import->path);
+});
+
+it('re-imports the last imported workbook when no path is given', function () {
+    fixtureWorkbookDivisions();
+    storeWorkbook();
+    $this->artisan('vic:import-policies')->assertSuccessful();
+    Storage::delete(WORKBOOK_PATH);
+
+    $this->artisan('vic:import-policies')
+        ->expectsOutputToContain('Reading '.PolicyImport::query()->value('path'))
+        ->assertSuccessful();
+
+    expect(PolicyImport::query()->count())->toBe(2);
 });
 
 it('updates imported policies in place and removes links and policies no longer in the workbook', function () {
@@ -109,6 +122,17 @@ it('reports columns missing from the workbook', function () {
 
     $this->artisan('vic:import-policies')
         ->expectsOutputToContain('Policies tab: missing the column [Status].')
+        ->assertFailed();
+
+    expect(Policy::query()->count())->toBe(0);
+});
+
+it('reports tabs missing from the workbook', function () {
+    fixtureWorkbookDivisions();
+    storeWorkbook('policy-workbook-without-display-notes.xlsx');
+
+    $this->artisan('vic:import-policies')
+        ->expectsOutputToContain('The workbook has no [Display notes] tab.')
         ->assertFailed();
 
     expect(Policy::query()->count())->toBe(0);

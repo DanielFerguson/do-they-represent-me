@@ -10,6 +10,7 @@ use App\Models\Party;
 use App\Models\Policy;
 use App\Models\PolicyAgreement;
 use App\Models\PolicyDivision;
+use App\Models\StanceSnapshot;
 use App\Models\Vote;
 
 /**
@@ -174,4 +175,18 @@ it('drops scores for policies that have been removed', function () {
     $this->artisan('vic:score')->assertSuccessful();
 
     expect(PolicyAgreement::query()->count())->toBe(0);
+});
+
+it('publishes the recalculated scores as the live quiz data', function () {
+    $house = House::factory()->create();
+    $party = Party::factory()->create(['short_name' => 'RED']);
+    $seat = Membership::factory()->for($house)->for($party)->create();
+    $link = PolicyDivision::factory()->for(Policy::factory()->published()->state(['number' => 7]))->for(Division::factory()->for($house))->strong()->create();
+    Vote::factory()->for($link->division)->by($seat)->aye()->create();
+
+    $this->artisan('vic:score')->expectsOutputToContain('Published quiz data version')->assertSuccessful();
+
+    expect(json_decode(StanceSnapshot::query()->sole()->payload, true)['policies'][0])
+        ->id->toBe(7)
+        ->stances->toBe(['RED' => ['agreement' => 1.0, 'label' => 'Consistently for']]);
 });

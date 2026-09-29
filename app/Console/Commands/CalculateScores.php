@@ -2,25 +2,26 @@
 
 namespace App\Console\Commands;
 
-use App\Domain\Scoring\PartyPositionCalculator;
-use App\Domain\Scoring\PolicyAgreementCalculator;
+use App\Domain\Scoring\ScoreRecalculator;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 
 #[Signature('vic:score')]
-#[Description('Recalculate party positions for every division, then agreement scores for every policy')]
+#[Description('Recalculate party positions, policy agreement scores and the published quiz data')]
 class CalculateScores extends Command
 {
     /**
      * Execute the console command.
      */
-    public function handle(PartyPositionCalculator $positions, PolicyAgreementCalculator $agreements): int
+    public function handle(ScoreRecalculator $recalculator): int
     {
-        [$positionRows, $agreementRows] = DB::transaction(fn (): array => [$positions->recalculate(), $agreements->recalculate()]);
+        $result = $recalculator->recalculate();
 
-        $this->info("Recalculated {$positionRows} party positions and {$agreementRows} policy agreement scores.");
+        $this->info("Recalculated {$result['positions']} party positions and {$result['agreements']} policy agreement scores.");
+        $this->line($result['snapshot'] === null
+            ? 'No policies are published yet, so the quiz still shows the prototype.'
+            : "Published quiz data version {$result['snapshot']->hash}.");
 
         return self::SUCCESS;
     }

@@ -1,11 +1,16 @@
-<x-layouts.public title="Your results">
+<x-layouts.public title="Your results" :noindex="$isPreview">
     <div
         x-data="results"
-        data-stances-url="{{ asset('stances/sample.json') }}"
-        data-quiz-url="{{ route('quiz') }}"
+        data-stances-url="{{ $stancesUrl }}"
+        data-quiz-url="{{ $quizUrl }}"
+        data-storage-key="{{ $storageKey }}"
         class="mx-auto flex max-w-2xl flex-col gap-10 px-4 py-10"
     >
-        <x-sample-notice />
+        @if ($isPreview)
+            <x-preview-notice />
+        @elseif ($isSample)
+            <x-sample-notice />
+        @endif
 
         <p x-show="loading" class="text-zinc-500">Working out your results…</p>
         <p x-show="failed" x-cloak>Sorry, the results couldn't be loaded. Please refresh the page to try again.</p>

@@ -41,6 +41,7 @@ class ProceedingsDocumentImporter
         private ProceedingsParser $parser,
         private DivisionStageClassifier $classifier,
         private MemberResolver $resolver,
+        private DivisionDateCorrections $dateCorrections,
     ) {}
 
     public function import(ProceedingsDocument $document, bool $force = false): ImportResult
@@ -147,6 +148,14 @@ class ProceedingsDocumentImporter
 
             if ($parliament === null) {
                 continue;
+            }
+
+            $correctedDate = $this->dateCorrections->dateFor(
+                Division::formatReference($house->short_name, $parliament->number, $division->sittingNumber, $division->sequence),
+            );
+
+            if ($correctedDate !== null) {
+                $division = $division->withSittingDate($correctedDate);
             }
 
             $ayes = $this->resolver->resolveMany($division->ayes, $house, $division->sittingDate);

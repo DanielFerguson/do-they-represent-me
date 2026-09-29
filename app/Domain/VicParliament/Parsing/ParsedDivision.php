@@ -34,6 +34,19 @@ final readonly class ParsedDivision
     ) {}
 
     /**
+     * The same division, held on a different date: for the rare cases where
+     * the proceedings document is dated differently from the vote.
+     */
+    public function withSittingDate(CarbonImmutable $date): self
+    {
+        return new self(
+            $this->sittingNumber, $date, $this->sequence, $this->body, $this->presidingRole, $this->presidingOfficer,
+            $this->itemNumber, $this->itemTitle, $this->question, $this->ayesCount, $this->noesCount,
+            $this->ayes, $this->noes, $this->result, $this->tellers,
+        );
+    }
+
+    /**
      * Whether the printed names agree with the printed totals.
      */
     public function isConsistent(): bool

@@ -1,11 +1,16 @@
-<x-layouts.public title="Quiz">
+<x-layouts.public title="Quiz" :noindex="$isPreview">
     <div
         x-data="quiz"
-        data-stances-url="{{ asset('stances/sample.json') }}"
-        data-results-url="{{ route('results') }}"
+        data-stances-url="{{ $stancesUrl }}"
+        data-results-url="{{ $resultsUrl }}"
+        data-storage-key="{{ $storageKey }}"
         class="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-10"
     >
-        <x-sample-notice />
+        @if ($isPreview)
+            <x-preview-notice />
+        @elseif ($isSample)
+            <x-sample-notice />
+        @endif
 
         <p x-show="loading" class="text-zinc-500">Loading questions…</p>
         <p x-show="failed" x-cloak class="text-zinc-700 dark:text-zinc-300">Sorry, the questions couldn't be loaded. Please refresh the page to try again.</p>
@@ -28,6 +33,11 @@
                 </div>
 
                 <h1 id="question" class="text-2xl font-semibold leading-snug tracking-tight sm:text-3xl" x-text="current.question"></h1>
+
+                <details x-show="current.description" class="text-sm text-zinc-600 dark:text-zinc-400">
+                    <summary class="cursor-pointer underline-offset-4 hover:underline">About this question</summary>
+                    <p class="mt-2 leading-relaxed" x-text="current.description"></p>
+                </details>
 
                 <div class="flex flex-col gap-3">
                     <div class="grid grid-cols-2 gap-3">

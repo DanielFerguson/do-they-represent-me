@@ -1,0 +1,66 @@
+<?php
+
+namespace App\Domain\Stances;
+
+use App\Models\Policy;
+use App\Models\StanceSnapshot;
+
+/**
+ * Versions of the published quiz data. Each is stored as the exact JSON body
+ * served to browsers and named by the SHA-256 of its content, so a shared
+ * results link keeps the data it was made with.
+ */
+class StanceSnapshots
+{
+    private const JSON_FLAGS = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION | JSON_THROW_ON_ERROR;
+
+    public function __construct(private StanceSnapshotBuilder $builder) {}
+
+    /**
+     * Store the current published data as the live version. Unchanged data
+     * keeps its hash, and data that changes back to an earlier version makes
+     * that version live again. Does nothing until a policy is published.
+     */
+    public function publish(): ?StanceSnapshot
+    {
+        if (! Policy::query()->published()->exists()) {
+            return null;
+        }
+
+        [$hash, $body] = $this->encode($this->builder->build());
+
+        return StanceSnapshot::query()->updateOrCreate(['hash' => $hash], ['payload' => $body, 'published_at' => now()]);
+    }
+
+    /**
+     * The live version, or null while no policy is published.
+     */
+    public function current(): ?StanceSnapshot
+    {
+        if (! Policy::query()->published()->exists()) {
+            return null;
+        }
+
+        return StanceSnapshot::query()->whereNotNull('published_at')->latest('published_at')->first();
+    }
+
+    /**
+     * The current data including policies still in review, for reviewers'
+     * preview links. Built on request and never stored.
+     */
+    public function previewBody(): string
+    {
+        return $this->encode($this->builder->build(includeReview: true))[1];
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array{0: string, 1: string} the content hash and the JSON body, which carries the hash as its version
+     */
+    private function encode(array $payload): array
+    {
+        $hash = hash('sha256', json_encode($payload, self::JSON_FLAGS));
+
+        return [$hash, json_encode(['version' => $hash, ...$payload], self::JSON_FLAGS)];
+    }
+}

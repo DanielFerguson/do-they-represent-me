@@ -1,5 +1,6 @@
 @props([
     'title' => null,
+    'noindex' => false,
     'description' => 'See how Victorian parties and MPs actually voted in State Parliament, and compare their record with your own views.',
 ])
 
@@ -10,6 +11,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="{{ $description }}">
         <meta name="color-scheme" content="light dark">
+        @if ($noindex)
+            <meta name="robots" content="noindex, nofollow">
+        @endif
 
         <title>{{ $title ? $title.' · ' : '' }}Do They Represent Me?</title>
 

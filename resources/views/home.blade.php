@@ -10,7 +10,9 @@
             </div>
         </div>
 
-        <x-sample-notice />
+        @if ($isSample)
+            <x-sample-notice />
+        @endif
 
         <section aria-labelledby="how" class="flex flex-col gap-3">
             <h2 id="how" class="text-lg font-semibold">How it works</h2>

@@ -92,6 +92,29 @@ class XlsxReader
     }
 
     /**
+     * The names of the workbook's sheets, in tab order.
+     *
+     * @return list<string>
+     */
+    public function sheetNames(string $path): array
+    {
+        $this->guardAgainstOversizedInput($path);
+
+        $reader = $this->open($path, 'xl/workbook.xml');
+        $names = [];
+
+        while ($reader->read()) {
+            if ($reader->nodeType === XMLReader::ELEMENT && $reader->localName === 'sheet') {
+                $names[] = (string) $reader->getAttribute('name');
+            }
+        }
+
+        $reader->close();
+
+        return $names;
+    }
+
+    /**
      * Find the worksheet part for a sheet name via the workbook relationships.
      */
     private function sheetPath(string $path, string $sheetName): string

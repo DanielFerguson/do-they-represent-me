@@ -91,7 +91,12 @@ class Division extends Model
      */
     public function reference(): string
     {
-        return sprintf('%s-%d-%03d-%02d', $this->house->short_name, $this->parliament->number, $this->sitting_number, $this->sequence);
+        return self::formatReference($this->house->short_name, $this->parliament->number, $this->sitting_number, $this->sequence);
+    }
+
+    public static function formatReference(string $house, int $parliament, int $sittingNumber, int $sequence): string
+    {
+        return sprintf('%s-%d-%03d-%02d', $house, $parliament, $sittingNumber, $sequence);
     }
 
     /**

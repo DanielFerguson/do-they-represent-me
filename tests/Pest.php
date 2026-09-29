@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\Division;
+use App\Models\House;
+use App\Models\Parliament;
+use App\Models\Party;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -44,7 +48,22 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * The records the fixture workbook refers to: the party its display note names, and the
+ * divisions it links to, with the totals its Divisions tab lists.
+ *
+ * @return array<string, Division>
+ */
+function fixtureWorkbookDivisions(): array
 {
-    // ..
+    Party::factory()->create(['name' => 'Test Party']);
+    $parliament = Parliament::factory()->create(['number' => 60]);
+    $assembly = House::factory()->create(['short_name' => 'LA']);
+    $council = House::factory()->create(['short_name' => 'LC']);
+
+    return [
+        'LA-60-092-02' => Division::factory()->for($parliament)->for($assembly)->create(['sitting_number' => 92, 'sequence' => 2, 'ayes_count' => 29, 'noes_count' => 54]),
+        'LA-60-092-03' => Division::factory()->for($parliament)->for($assembly)->create(['sitting_number' => 92, 'sequence' => 3, 'ayes_count' => 54, 'noes_count' => 29]),
+        'LC-60-025-01' => Division::factory()->for($parliament)->for($council)->create(['sitting_number' => 25, 'sequence' => 1, 'ayes_count' => 20, 'noes_count' => 15]),
+    ];
 }

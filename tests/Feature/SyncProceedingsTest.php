@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\VicParliament\Importing\DivisionDateCorrections;
 use App\Domain\VicParliament\ParliamentClient;
 use App\Enums\DivisionStage;
 use App\Enums\PartyPosition;
@@ -105,6 +106,18 @@ it('recalculates each party\'s position after importing', function () {
         'LIB' => [20, 0, 20, PartyPosition::Aye],
         'NAT' => [9, 0, 9, PartyPosition::Aye],
     ]);
+});
+
+it('dates a division by its curated correction when the document is dated differently', function () {
+    $this->app->instance(DivisionDateCorrections::class, new DivisionDateCorrections(base_path('tests/Fixtures/DivisionDateCorrections/one-correction.csv')));
+    fakeParliament();
+
+    $this->artisan('vic:sync-proceedings --house=council')->assertSuccessful();
+
+    $divisions = Division::query()->where('sitting_number', 128)->orderBy('sequence')->get();
+    expect($divisions->first()->sitting_date->toDateString())->toBe('2025-08-25')
+        ->and($divisions->skip(1)->pluck('sitting_date')->map->toDateString()->unique()->all())->toBe(['2025-08-26'])
+        ->and($divisions->first()->votes()->count())->toBe($divisions->first()->ayes_count + $divisions->first()->noes_count);
 });
 
 it('classifies stages and keeps the raw documents', function () {

@@ -1,5 +1,8 @@
 <?php
 
+use App\Domain\Stances\StanceSnapshots;
+use App\Models\Policy;
+
 it('renders the public pages', function (string $route, string $text) {
     $this->get(route($route))
         ->assertOk()
@@ -32,3 +35,21 @@ it('publishes sample stances with stable policy ids and a stance for every party
         }
     }
 });
+
+it('points the quiz and results at the sample data while no policy is published', function (string $route) {
+    $this->get(route($route))->assertSee('data-stances-url="'.asset('stances/sample.json').'"', escape: false);
+})->with(['quiz', 'results']);
+
+it('points the quiz and results at the published data once a policy is published', function (string $route) {
+    Policy::factory()->published()->create();
+    $snapshot = app(StanceSnapshots::class)->publish();
+
+    $this->get(route($route))->assertSee('data-stances-url="'.route('stances.show', $snapshot->hash).'"', escape: false);
+})->with(['quiz', 'results']);
+
+it('drops the prototype notice once a policy is published', function (string $route) {
+    Policy::factory()->published()->create();
+    app(StanceSnapshots::class)->publish();
+
+    $this->get(route($route))->assertDontSee('Prototype.');
+})->with(['home', 'quiz', 'results']);

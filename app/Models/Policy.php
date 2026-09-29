@@ -17,8 +17,9 @@ use Illuminate\Support\Carbon;
 /**
  * @property PolicyStatus $status
  * @property Carbon|null $published_at
+ * @property list<array{subject_type: string, subject_id: int, note: string}>|null $display_notes
  */
-#[Fillable(['number', 'slug', 'title', 'question', 'description', 'rationale', 'arguments_for', 'arguments_against', 'sources', 'verification_notes', 'reviewer_notes', 'topic', 'agree_means', 'status', 'published_at'])]
+#[Fillable(['number', 'slug', 'title', 'question', 'description', 'rationale', 'arguments_for', 'arguments_against', 'sources', 'verification_notes', 'reviewer_notes', 'display_notes', 'topic', 'agree_means', 'status', 'published_at'])]
 class Policy extends Model
 {
     /** @use HasFactory<PolicyFactory> */
@@ -66,6 +67,7 @@ class Policy extends Model
     {
         return [
             'status' => PolicyStatus::class,
+            'display_notes' => 'array',
             'published_at' => 'datetime',
         ];
     }

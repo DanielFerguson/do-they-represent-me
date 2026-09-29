@@ -15,8 +15,6 @@ export const ANSWERS = {
     s: { label: 'Skipped', value: null },
 };
 
-const STORAGE_KEY = 'dtrm-answers';
-
 /**
  * Serialise answers keyed by stable policy ID, e.g. "1a.2d.7u".
  */
@@ -47,35 +45,53 @@ export function answersFromHash(hash) {
     return decodeAnswers(params.get('a'));
 }
 
-export function saveProgress(version, answers, index) {
+export function saveProgress(key, version, answers, index) {
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ version, answers, index }));
+        localStorage.setItem(key, JSON.stringify({ version, answers, index }));
     } catch {
         // Storage can be unavailable (private browsing); progress just won't persist.
     }
 }
 
-export function loadProgress(version) {
+/**
+ * Saved answers are keyed by stable policy IDs, so they survive new versions
+ * of the data; only the position in the quiz is reset.
+ */
+export function loadProgress(key, version) {
     try {
-        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        const saved = JSON.parse(localStorage.getItem(key) || 'null');
 
-        return saved && saved.version === version ? saved : null;
+        if (!saved || typeof saved.answers !== 'object' || saved.answers === null) {
+            return null;
+        }
+
+        return { answers: saved.answers, index: saved.version === version ? saved.index : 0 };
     } catch {
         return null;
     }
 }
 
-export function clearProgress() {
+export function clearProgress(key) {
     try {
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(key);
     } catch {
         // Nothing to clear.
     }
 }
 
 /**
- * How a party voted on a policy, in plain words.
+ * How a party voted on a policy, in plain words: a reviewers' note where one
+ * replaces the figure, otherwise the label from the published data. Data
+ * without labels (the prototype sample) falls back to the figure.
  */
+export function stanceText(stance) {
+    if (!stance) {
+        return 'No voting record';
+    }
+
+    return stance.note ?? stance.label ?? stanceLabel(stance.agreement);
+}
+
 export function stanceLabel(agreement) {
     if (agreement === null || agreement === undefined) {
         return 'No voting record';
@@ -85,7 +101,7 @@ export function stanceLabel(agreement) {
         return 'Voted for';
     }
 
-    if (agreement <= 0.4) {
+    if (agreement < 0.4) {
         return 'Voted against';
     }
 
@@ -96,9 +112,9 @@ export function stanceLabel(agreement) {
  * Match each party to the user's answers.
  *
  * For every question answered Agree (1) or Disagree (0) where the party has
- * a record, the match is 1 − |answer − agreement|; the party's score is the
- * mean across those questions. Unsure, skipped and "no record" questions
- * are left out.
+ * a figure, the match is 1 − |answer − agreement|; the party's score is the
+ * mean across those questions. Unsure, skipped and "no record" questions,
+ * and questions where a note replaces the party's figure, are left out.
  */
 export function scoreParties(data, answers) {
     return data.parties.map((party) => {

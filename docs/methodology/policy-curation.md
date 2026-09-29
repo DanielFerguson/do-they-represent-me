@@ -56,7 +56,7 @@ The protocol has six stages. The workbook was saved after each one.
 
 ## The workbook
 
-The workbook is the only place policy text is edited. The importer reads three tabs and matches columns by their heading, so columns can be added or moved.
+The workbook is the only place policy text is edited. The importer reads four tabs and matches columns by their heading, so columns can be added or moved.
 
 - **Policies:** one row per policy.
   - Its ID (P01, P02…) is permanent and becomes the policy's number in quiz links.
@@ -66,6 +66,10 @@ The workbook is the only place policy text is edited. The importer reads three t
   - whether "agree" means an Aye or a No vote;
   - whether it is a strong vote;
   - a public one-line rationale.
+- **Display notes:** a note to show instead of a match figure for a particular party or MP on a policy.
+  - These are for cases where reviewers found that the weighted figure would misstate a position, for example where a party voted for a bill but opposed the part the question is about.
+  - Name the party by its short or full name, or the MP by their full name.
+  - The tab is required, even when empty, so that a renamed tab can't silently drop the notes.
 - **Divisions:** every division, with the totals the curators worked from.
 
 Other tabs record the method, the selection log with scores, the balance check, the review log, the sources and the conscience votes.
@@ -78,11 +82,18 @@ Other tabs record the method, the selection log with scores, the balance check, 
 - every active policy has a title and a question;
 - every link refers to a policy on the Policies tab and an imported division, and is not repeated;
 - directions are Aye or No, and strong flags are Y or N;
-- each linked division has the same printed totals as on the Divisions tab. This check means a link can never silently point at a different vote.
+- each linked division has the same printed totals as on the Divisions tab. This check means a link can never silently point at a different vote;
+- every display note is for a policy on the Policies tab, names exactly one party or MP, isn't repeated, and isn't empty.
 
-A valid workbook updates policies in place by their number, replaces their links, and soft-deletes any policy no longer in the workbook. Scores are then recalculated.
+A valid workbook updates policies in place by their number, replaces their links and notes, and soft-deletes any policy no longer in the workbook. Scores are then recalculated and the quiz data republished.
 
-Only policies with the status Ready are published. Policies still in Review are scored too, so reviewers can preview them in the admin panel.
+New versions are imported on the admin panel's **Policy workbook** page. It runs the same checks and lists every problem on the page. Each successful import keeps a copy of the file named by its SHA-256 hash, and records who uploaded it and when.
+
+Only policies with the status Ready are published. Policies still in Review are scored too, so reviewers can check them:
+- in the admin panel;
+- on the real quiz, through a **preview link** created on the Policy workbook page.
+  - Preview links expire after 14 days.
+  - The pages they open are not cached, indexed by search engines, or sent as a referrer to other sites.
 
 ## Rules for the human review
 
