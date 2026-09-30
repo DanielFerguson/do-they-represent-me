@@ -5,13 +5,13 @@
         @endif
 
         <header class="flex flex-col gap-3">
-            <p class="text-sm text-zinc-500 dark:text-zinc-400">
+            <nav aria-label="Breadcrumb" class="text-sm text-zinc-600 dark:text-zinc-400">
                 @unless ($isPreview)
                     <a href="{{ route('policies.index') }}" class="underline-offset-4 hover:underline">Questions</a>
                     <span aria-hidden="true">/</span>
                 @endunless
                 {{ $policy->topic }}
-            </p>
+            </nav>
             <h1 class="text-2xl font-semibold leading-snug tracking-tight sm:text-3xl">{{ $policy->question }}</h1>
             <p class="text-zinc-600 dark:text-zinc-400">{{ $policy->title }}</p>
         </header>
@@ -58,7 +58,8 @@
                 <p class="text-zinc-600 dark:text-zinc-400">No party has a record on these votes yet.</p>
             @else
                 <table class="w-full text-sm">
-                    <thead class="text-left text-zinc-500">
+                    <caption class="sr-only">How each party voted across the linked votes</caption>
+                    <thead class="text-left text-zinc-500 dark:text-zinc-400">
                         <tr>
                             <th scope="col" class="py-1 pr-4 font-normal">Party</th>
                             <th scope="col" class="py-1 pr-4 font-normal">Record</th>
@@ -95,16 +96,16 @@
                     </div>
 
                     <dl class="grid gap-x-4 gap-y-2 text-sm sm:grid-cols-[10rem_1fr]">
-                        <dt class="text-zinc-500">Question put</dt>
+                        <dt class="text-zinc-500 dark:text-zinc-400">Question put</dt>
                         <dd>{{ $division->question }}</dd>
-                        <dt class="text-zinc-500">Result</dt>
+                        <dt class="text-zinc-500 dark:text-zinc-400">Result</dt>
                         <dd>{{ $division->result }} Ayes {{ $division->ayes_count }}, Noes {{ $division->noes_count }}.</dd>
-                        <dt class="text-zinc-500">Matches "agree"</dt>
+                        <dt class="text-zinc-500 dark:text-zinc-400">Matches "agree"</dt>
                         <dd>{{ $link->direction === App\Enums\VoteValue::Aye ? 'An Aye vote' : 'A No vote' }}</dd>
-                        <dt class="text-zinc-500">Weight</dt>
+                        <dt class="text-zinc-500 dark:text-zinc-400">Weight</dt>
                         <dd>{{ $link->is_strong ? 'Strong: a second or third reading, counted five times' : 'Normal' }}</dd>
                         @if ($link->rationale)
-                            <dt class="text-zinc-500">Why it's linked</dt>
+                            <dt class="text-zinc-500 dark:text-zinc-400">Why it's linked</dt>
                             <dd>{{ $link->rationale }}</dd>
                         @endif
                     </dl>
@@ -114,9 +115,10 @@
                     @endif
 
                     @if ($splits !== [])
-                        <table class="w-full text-sm">
-                            <caption class="sr-only">How each party voted</caption>
-                            <thead class="text-left text-zinc-500">
+                        <div class="overflow-x-auto">
+                        <table class="w-full min-w-[26rem] text-sm">
+                            <caption class="sr-only">How each party voted on {{ $division->item_title ? Str::title(Str::lower($division->item_title)) : 'this division' }}, {{ $division->sitting_date->format('j F Y') }}</caption>
+                            <thead class="text-left text-zinc-500 dark:text-zinc-400">
                                 <tr>
                                     <th scope="col" class="py-1 pr-4 font-normal">Party</th>
                                     <th scope="col" class="py-1 pr-2 text-right font-normal">Aye</th>
@@ -131,17 +133,18 @@
                                         <th scope="row" class="py-1.5 pr-4 text-left font-normal">{{ $split['party']->display_name ?? $split['party']->name }}</th>
                                         <td class="py-1.5 pr-2 text-right tabular-nums">{{ $split['ayes'] }}</td>
                                         <td class="py-1.5 pr-2 text-right tabular-nums">{{ $split['noes'] }}</td>
-                                        <td class="py-1.5 pr-4 text-right tabular-nums text-zinc-500">{{ $split['absent'] }}</td>
+                                        <td class="py-1.5 pr-4 text-right tabular-nums text-zinc-500 dark:text-zinc-400">{{ $split['absent'] }}</td>
                                         <td class="py-1.5">{{ $split['position']->position->label() }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
+                        </div>
                     @endif
 
                     @if ($independents !== [])
                         <p class="text-sm">
-                            <span class="text-zinc-500">Independents, each counted on their own:</span>
+                            <span class="text-zinc-500 dark:text-zinc-400">Independents, each counted on their own:</span>
                             @foreach ($independents as $vote)
                                 {{ $vote->member->display_name }} ({{ $vote->vote === App\Enums\VoteValue::Aye ? 'Aye' : 'No' }}){{ $loop->last ? '' : ',' }}
                             @endforeach
@@ -149,7 +152,7 @@
                     @endif
 
                     <details class="text-sm">
-                        <summary class="cursor-pointer text-zinc-600 underline-offset-4 hover:underline dark:text-zinc-400">Every name</summary>
+                        <summary class="cursor-pointer py-1 text-zinc-600 underline-offset-4 hover:underline dark:text-zinc-400">Every name<span class="sr-only"> in the vote of {{ $division->sitting_date->format('j F Y') }}</span></summary>
                         <div class="mt-3 grid gap-4 sm:grid-cols-2">
                             <div>
                                 <h4 class="font-medium">Ayes ({{ count($ayes) }})</h4>
@@ -165,7 +168,7 @@
                     @if ($division->proceedingsDocument->sourceUrl())
                         <p class="text-sm">
                             <a href="{{ $division->proceedingsDocument->sourceUrl() }}" class="underline underline-offset-4" rel="noopener">{{ $division->proceedingsDocument->title }}</a>
-                            <span class="text-zinc-500">(official record, {{ $division->reference() }})</span>
+                            <span class="text-zinc-500 dark:text-zinc-400">(official record, {{ $division->reference() }})</span>
                         </p>
                     @endif
                 </article>

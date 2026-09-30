@@ -13,12 +13,18 @@
             <x-sample-notice />
         @endif
 
-        <p x-show="loading" class="text-zinc-500">Working out your results…</p>
-        <p x-show="failed" x-cloak>Sorry, the results couldn't be loaded. Please refresh the page to try again.</p>
+        <h1 class="sr-only">Your results</h1>
+
+        <noscript>
+            <p class="text-zinc-700 dark:text-zinc-300">Your results are worked out in your browser, which needs JavaScript. You can still read <a href="{{ route('policies.index') }}" class="underline underline-offset-4">every question and the votes behind it</a>, and <a href="{{ route('districts.index') }}" class="underline underline-offset-4">how your MPs voted</a>.</p>
+        </noscript>
+
+        <p x-show="loading" role="status" class="text-zinc-600 dark:text-zinc-400">Working out your results…</p>
+        <p x-show="failed" x-cloak role="alert">Sorry, the results couldn't be loaded. Please refresh the page to try again.</p>
 
         <template x-if="!loading && !failed && !enoughAnswers">
             <div class="flex flex-col gap-4">
-                <h1 class="text-2xl font-semibold tracking-tight">Answer a few more questions</h1>
+                <h2 class="text-2xl font-semibold tracking-tight">Answer a few more questions</h2>
                 <p class="text-zinc-600 dark:text-zinc-400">
                     We need at least <span x-text="minimumAnswers"></span> Agree or Disagree answers to compare you fairly. You've given <span x-text="comparable"></span>.
                 </p>
@@ -30,7 +36,7 @@
             <div class="flex flex-col gap-12">
                 <section aria-labelledby="parties" class="flex flex-col gap-6">
                     <div class="flex flex-col gap-2">
-                        <h1 id="parties" class="text-2xl font-semibold tracking-tight">How often each party voted the way you would have</h1>
+                        <h2 id="parties" class="text-2xl font-semibold tracking-tight">How often each party voted the way you would have</h2>
                         <p class="text-sm text-zinc-600 dark:text-zinc-400">
                             Based on your <span x-text="comparable"></span> Agree or Disagree answers. Voting records up to <span x-text="data.data_as_of"></span>.
                         </p>
@@ -70,13 +76,14 @@
 
                     <div class="flex flex-col gap-1">
                         <label for="district" class="text-sm font-medium">Your district</label>
-                        <select id="district" x-on:change="chooseDistrict" class="w-full max-w-sm rounded-md border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900">
+                        <select id="district" x-on:change="chooseDistrict" class="w-full max-w-sm rounded-md border border-zinc-500 bg-white px-3 py-2 dark:bg-zinc-900">
                             <option value="" x-bind:selected="!district">Choose your district…</option>
                             <template x-for="option in districts" x-bind:key="option.slug">
                                 <option x-bind:value="option.slug" x-bind:selected="option.slug === district" x-text="option.name"></option>
                             </template>
                         </select>
-                        <p class="text-xs text-zinc-500">Not sure? <a href="{{ route('districts.index') }}" class="underline underline-offset-4">Find it by suburb</a>. Your district stays in your browser, like your answers.</p>
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400">Not sure? <a href="{{ route('districts.index') }}" class="underline underline-offset-4">Find it by suburb</a>. Your district stays in your browser, like your answers.</p>
+                        <p class="sr-only" aria-live="polite" x-text="districtAnnouncement"></p>
                     </div>
 
                     <template x-if="representatives">
@@ -86,10 +93,10 @@
                                 <template x-for="member in representativeRows" x-bind:key="member.slug">
                                     <li class="flex flex-col gap-2">
                                         <span class="sr-only" x-text="member.label"></span>
-                                        <div class="flex items-baseline justify-between gap-4" aria-hidden="true">
+                                        <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4" aria-hidden="true">
                                             <span class="flex flex-col">
                                                 <span class="font-medium" x-text="member.name"></span>
-                                                <span class="text-sm text-zinc-500"><span x-text="member.party"></span> · <span x-text="member.role"></span></span>
+                                                <span class="text-sm text-zinc-500 dark:text-zinc-400"><span x-text="member.party"></span> · <span x-text="member.role"></span></span>
                                             </span>
                                             <span class="shrink-0 whitespace-nowrap text-sm tabular-nums text-zinc-600 dark:text-zinc-400" x-text="member.summary"></span>
                                         </div>
@@ -112,14 +119,18 @@
                             <details class="group py-4">
                                 <summary class="flex cursor-pointer list-none items-start justify-between gap-4">
                                     <span class="flex flex-col gap-1">
-                                        <span class="text-xs uppercase tracking-wide text-zinc-500" x-text="policy.topic"></span>
+                                        <span class="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400" x-text="policy.topic"></span>
                                         <span class="font-medium" x-text="policy.question"></span>
                                     </span>
-                                    <span class="shrink-0 text-sm text-zinc-600 dark:text-zinc-400">You: <span x-text="policy.yourAnswer"></span></span>
+                                    <span class="flex shrink-0 items-baseline gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                                        <span>You: <span x-text="policy.yourAnswer"></span></span>
+                                        <span aria-hidden="true" class="inline-block transition-transform group-open:rotate-180 motion-reduce:transition-none">&#9662;</span>
+                                    </span>
                                 </summary>
 
                                 <table class="mt-4 w-full text-sm">
-                                    <thead class="text-left text-zinc-500">
+                                    <caption class="sr-only" x-text="policy.caption"></caption>
+                                    <thead class="text-left text-zinc-500 dark:text-zinc-400">
                                         <tr>
                                             <th scope="col" class="py-1 font-normal">Party</th>
                                             <th scope="col" class="py-1 font-normal">How they voted</th>
@@ -136,7 +147,7 @@
                                         </template>
                                     </tbody>
                                 </table>
-                                <p x-show="policy.url" class="mt-3 text-sm"><a x-bind:href="policy.url" class="underline underline-offset-4">See the votes behind this question</a></p>
+                                <p x-show="policy.url" class="mt-3 text-sm"><a x-bind:href="policy.url" class="underline underline-offset-4">See the votes behind this question<span class="sr-only">: <span x-text="policy.title"></span></span></a></p>
                             </details>
                         </template>
                     </div>
@@ -146,12 +157,10 @@
                     <h2 id="next" class="sr-only">What next</h2>
                     <div class="flex flex-wrap gap-3">
                         <a x-bind:href="changeAnswersUrl" class="inline-flex rounded-md border border-zinc-300 px-4 py-2 hover:border-zinc-500 dark:border-zinc-700">Change my answers</a>
-                        <button type="button" x-on:click="copyLink" class="inline-flex rounded-md border border-zinc-300 px-4 py-2 hover:border-zinc-500 dark:border-zinc-700">
-                            <span x-show="!copied">Copy a link to these results</span>
-                            <span x-show="copied">Link copied</span>
-                        </button>
+                        <button type="button" x-on:click="copyLink" class="inline-flex rounded-md border border-zinc-300 px-4 py-2 hover:border-zinc-500 dark:border-zinc-700">Copy a link to these results</button>
                     </div>
-                    <p class="text-xs text-zinc-500">The link stores your answers after the <code>#</code>, which browsers never send to a server.</p>
+                    <p role="status" class="text-sm text-zinc-600 dark:text-zinc-400" x-text="copyStatus"></p>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400">The link stores your answers after the <code>#</code>, which browsers never send to a server.</p>
                 </section>
             </div>
         </template>

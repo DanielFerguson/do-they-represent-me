@@ -12,15 +12,21 @@
             <x-sample-notice />
         @endif
 
-        <p x-show="loading" class="text-zinc-500">Loading questions…</p>
-        <p x-show="failed" x-cloak class="text-zinc-700 dark:text-zinc-300">Sorry, the questions couldn't be loaded. Please refresh the page to try again.</p>
+        <h1 class="sr-only">Quiz</h1>
+
+        <noscript>
+            <p class="text-zinc-700 dark:text-zinc-300">The quiz needs JavaScript. You can still read <a href="{{ route('policies.index') }}" class="underline underline-offset-4">every question and the votes behind it</a>, and <a href="{{ route('districts.index') }}" class="underline underline-offset-4">how your MPs voted</a>.</p>
+        </noscript>
+
+        <p x-show="loading" role="status" class="text-zinc-600 dark:text-zinc-400">Loading questions…</p>
+        <p x-show="failed" x-cloak role="alert" class="text-zinc-700 dark:text-zinc-300">Sorry, the questions couldn't be loaded. Please refresh the page to try again.</p>
 
         <template x-if="current">
             <section
                 tabindex="-1"
                 aria-labelledby="question"
                 x-on:keydown="onKey"
-                class="flex flex-col gap-8 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"
+                class="flex flex-col gap-8 rounded-lg"
             >
                 <div class="flex flex-col gap-2">
                     <div class="flex items-baseline justify-between gap-4 text-sm text-zinc-500 dark:text-zinc-400">
@@ -28,13 +34,13 @@
                         <span x-text="positionLabel"></span>
                     </div>
                     <div class="h-1 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800" aria-hidden="true">
-                        <div class="h-1 rounded-full bg-zinc-900 transition-all dark:bg-zinc-100" x-bind:style="progress"></div>
+                        <div class="h-1 rounded-full bg-zinc-900 transition-[width] motion-reduce:transition-none dark:bg-zinc-100" x-bind:style="progress"></div>
                     </div>
                 </div>
 
-                <h1 id="question" class="text-2xl font-semibold leading-snug tracking-tight sm:text-3xl" x-text="current.question"></h1>
+                <h2 id="question" class="text-2xl font-semibold leading-snug tracking-tight sm:text-3xl" x-text="current.question"></h2>
 
-                <details x-show="current.description || current.url" class="text-sm text-zinc-600 dark:text-zinc-400">
+                <details x-ref="about" x-show="current.description || current.url" class="text-sm text-zinc-600 dark:text-zinc-400">
                     <summary class="cursor-pointer underline-offset-4 hover:underline">About this question</summary>
                     <p x-show="current.description" class="mt-2 leading-relaxed" x-text="current.description"></p>
                     <p x-show="current.url" class="mt-2"><a x-bind:href="current.url" class="underline underline-offset-4">See the votes behind this question</a></p>
@@ -47,14 +53,14 @@
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <button type="button" x-on:click="unsure" x-bind:aria-pressed="isSelected('u')" x-bind:class="answerClass('u')" class="rounded-md border px-4 py-2 text-zinc-700 dark:text-zinc-300">Unsure</button>
-                        <button type="button" x-on:click="skip" class="rounded-md border border-transparent px-4 py-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100">Skip</button>
+                        <button type="button" x-on:click="skip" class="rounded-md border border-transparent px-4 py-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">Skip</button>
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between gap-4 text-sm">
-                    <button type="button" x-on:click="back" x-bind:disabled="isFirst" class="text-zinc-600 underline-offset-4 hover:underline disabled:invisible dark:text-zinc-400">&larr; Previous question</button>
-                    <button type="button" x-show="canSeeResults" x-on:click="finish" class="font-medium underline-offset-4 hover:underline">See my results now &rarr;</button>
-                    <span x-show="!canSeeResults" class="text-zinc-500">Answer <span x-text="remainingForResults"></span> more to see results</span>
+                    <button type="button" x-on:click="back" x-bind:aria-disabled="isFirst" class="py-1 text-zinc-600 underline-offset-4 hover:underline aria-disabled:cursor-default aria-disabled:opacity-40 aria-disabled:hover:no-underline dark:text-zinc-400">&larr; Previous question</button>
+                    <button type="button" x-show="canSeeResults" x-on:click="finish" class="py-1 font-medium underline-offset-4 hover:underline">See my results now &rarr;</button>
+                    <span x-show="!canSeeResults" class="text-zinc-500 dark:text-zinc-400">Answer <span x-text="remainingForResults"></span> more to see results</span>
                 </div>
 
                 <p class="text-xs text-zinc-500 dark:text-zinc-400">
@@ -66,7 +72,7 @@
         <p class="sr-only" aria-live="polite" x-text="announcement"></p>
 
         <div x-show="!loading && !failed" x-cloak>
-            <button type="button" x-on:click="startAgain" class="text-sm text-zinc-500 underline-offset-4 hover:underline">Clear my answers and start again</button>
+            <button type="button" x-on:click="startAgain" class="py-1 text-sm text-zinc-600 underline-offset-4 hover:underline dark:text-zinc-400">Clear my answers and start again</button>
         </div>
     </div>
 </x-layouts.public>

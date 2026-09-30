@@ -14,6 +14,7 @@ use App\Models\PolicyAgreement;
 use App\Models\PolicyDivision;
 use App\Models\ProceedingsDocument;
 use App\Models\Vote;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 
 it('lists the published questions by topic', function () {
@@ -142,3 +143,22 @@ it('links each question in the preview data to its signed preview evidence page,
     expect($url)->toStartWith("/preview/policies/{$policy->slug}?expires={$expires->getTimestamp()}");
     $this->get($url)->assertOk();
 });
+
+it('shows a question’s evidence in a fixed number of queries, however many votes are linked', function (int $divisions) {
+    $policy = Policy::factory()->published()->create();
+    $party = Party::factory()->create();
+    PolicyAgreement::factory()->for($policy)->for($party, 'subject')->create();
+
+    foreach (range(1, $divisions) as $index) {
+        $membership = Membership::factory()->for($party)->create();
+        $division = Division::factory()->create(['house_id' => $membership->house_id, 'ayes_count' => 1]);
+        PolicyDivision::factory()->for($policy)->for($division)->create();
+        DivisionPartyPosition::query()->create(['division_id' => $division->id, 'party_id' => $party->id, 'ayes' => 1, 'noes' => 0, 'eligible' => 1, 'position' => PartyPosition::Aye]);
+        Vote::factory()->for($division)->by($membership)->aye()->create();
+    }
+
+    DB::enableQueryLog();
+    $this->get(route('policies.show', $policy->slug))->assertOk();
+
+    expect(count(DB::getQueryLog()))->toBeLessThanOrEqual(15);
+})->with([1, 8]);

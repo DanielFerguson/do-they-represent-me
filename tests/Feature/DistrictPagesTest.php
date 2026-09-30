@@ -11,6 +11,7 @@ use App\Models\Membership;
 use App\Models\Party;
 use App\Models\Policy;
 use App\Models\PolicyAgreement;
+use Illuminate\Support\Facades\DB;
 
 /**
  * A region with one district in it, for Assembly and Council seats.
@@ -132,3 +133,23 @@ it('shows no candidates section before the ballot draw', function () {
 
     $this->get(route('districts.show', $district->slug))->assertDontSee('Candidates at the');
 });
+
+it('shows a district page in a fixed number of queries, however many MPs and questions there are', function (int $questions) {
+    ['assembly' => $assembly, 'council' => $council, 'region' => $region, 'district' => $district] = districtInRegion();
+    $members = [seat($district, $assembly, 'Jo Member')->member];
+
+    foreach (range(1, 5) as $index) {
+        $members[] = seat($region, $council, "Upper Member{$index}")->member;
+    }
+
+    foreach (Policy::factory()->published()->count($questions)->create() as $policy) {
+        foreach ($members as $member) {
+            PolicyAgreement::factory()->for($policy)->for($member, 'subject')->create();
+        }
+    }
+
+    DB::enableQueryLog();
+    $this->get(route('districts.show', $district->slug))->assertOk();
+
+    expect(count(DB::getQueryLog()))->toBeLessThanOrEqual(12);
+})->with([1, 10]);

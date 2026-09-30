@@ -1,11 +1,11 @@
 <x-layouts.public :title="$district->name.' District'" :description="'The MLA and MLCs for '.$district->name.' District, and how they voted in the Parliament of Victoria.'">
     <div class="mx-auto flex max-w-3xl flex-col gap-10 px-4 py-10">
         <header class="flex flex-col gap-3">
-            <p class="text-sm text-zinc-500 dark:text-zinc-400">
+            <nav aria-label="Breadcrumb" class="text-sm text-zinc-600 dark:text-zinc-400">
                 <a href="{{ route('districts.index') }}" class="underline-offset-4 hover:underline">Districts</a>
                 <span aria-hidden="true">/</span>
                 {{ $region?->name }} Region
-            </p>
+            </nav>
             <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">{{ $district->name }} District</h1>
             <p class="text-zinc-600 dark:text-zinc-400">
                 Voters in {{ $district->name }} elect one member of the Legislative Assembly (the lower house). They also help elect the five members of the Legislative Council (the upper house) for {{ $region?->name }} Region.
@@ -16,8 +16,8 @@
                 class="flex flex-wrap items-center gap-3"
             >
                 <a href="{{ route('quiz') }}" class="inline-flex items-center rounded-md bg-zinc-900 px-5 py-3 font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">Take the quiz</a>
-                <button type="button" x-show="!isMine" x-cloak x-on:click="choose" class="inline-flex rounded-md border border-zinc-300 px-4 py-3 hover:border-zinc-500 dark:border-zinc-700">Use this as my district</button>
-                <p x-show="isMine" x-cloak class="text-sm text-zinc-600 dark:text-zinc-400">This is your district. Your results will show these members.</p>
+                <button type="button" x-cloak x-on:click="choose" x-bind:aria-pressed="isMine" class="inline-flex rounded-md border border-zinc-300 px-4 py-3 hover:border-zinc-500 aria-pressed:border-zinc-900 aria-pressed:font-medium dark:border-zinc-700 dark:aria-pressed:border-zinc-100">This is my district</button>
+                <p role="status" class="text-sm text-zinc-600 dark:text-zinc-400" x-text="status"></p>
             </div>
         </header>
 

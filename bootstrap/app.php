@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Route;
+use Spatie\Csp\AddCspHeaders;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,6 +23,13 @@ return Application::configure(basePath: dirname(__DIR__))
         // never set a cookie and can be cached by the edge network.
         $middleware->group('public', [
             SubstituteBindings::class,
+        ]);
+
+        // On every response, including 404s and error pages. The admin panel
+        // sets its own policy, which this one leaves in place.
+        $middleware->append([
+            SecurityHeaders::class,
+            AddCspHeaders::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -27,7 +27,8 @@
         x-on:focus="load"
         x-on:input="onInput"
         x-on:keydown="onKeydown"
-        class="w-full rounded-md border border-zinc-300 bg-white px-4 py-3 text-lg outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-900"
+        x-on:blur="close"
+        class="w-full rounded-md border border-zinc-500 bg-white px-4 py-3 text-lg dark:border-zinc-500 dark:bg-zinc-900"
     >
     <p id="finder-hint" class="text-sm text-zinc-600 dark:text-zinc-400">
         For example, Ballarat or 3350. Or <a href="{{ route('districts.index') }}" class="underline underline-offset-4">browse all 88 districts</a>.
@@ -47,21 +48,22 @@
                 x-bind:id="optionId(index)"
                 x-bind:aria-selected="index === active"
                 x-bind:class="optionClass(index)"
-                x-on:mousedown.prevent="select(index)"
+                x-on:mousedown.prevent
+                x-on:click="select(index)"
                 class="flex cursor-pointer items-baseline justify-between gap-4 px-4 py-2"
             >
                 <span class="font-medium" x-text="locality.name"></span>
-                <span class="text-sm text-zinc-500" x-text="optionDetail(locality)"></span>
+                <span class="text-sm text-zinc-600 dark:text-zinc-400" x-text="optionDetail(locality)"></span>
             </li>
         </template>
     </ul>
 
     <p class="sr-only" aria-live="polite" x-text="status"></p>
     <p x-show="noMatches && !isOpen" x-cloak class="text-sm text-zinc-600 dark:text-zinc-400">No suburb or postcode matches. Try another spelling, or browse the districts.</p>
-    <p x-show="failed" x-cloak class="text-sm text-zinc-600 dark:text-zinc-400">Sorry, the suburb list couldn't be loaded. You can <a href="{{ route('districts.index') }}" class="underline underline-offset-4">browse the districts</a> instead.</p>
+    <p x-show="failed" x-cloak role="alert" class="text-sm text-zinc-600 dark:text-zinc-400">Sorry, the suburb list couldn't be loaded. You can <a href="{{ route('districts.index') }}" class="underline underline-offset-4">browse the districts</a> instead.</p>
 
-    <div x-show="chosen" x-cloak x-ref="choices" tabindex="-1" class="flex flex-col gap-2 rounded-md border border-zinc-200 p-4 outline-none dark:border-zinc-800">
-        <p><span x-text="chosenName"></span> is split between districts. Choose yours:</p>
+    <div x-show="chosen" x-cloak x-ref="choices" tabindex="-1" role="group" aria-labelledby="finder-split" class="flex flex-col gap-2 rounded-md border border-zinc-200 p-4 dark:border-zinc-800">
+        <p id="finder-split"><span x-text="chosenName"></span> is split between districts. Choose yours:</p>
         <ul class="flex flex-col gap-1">
             <template x-for="district in chosenDistricts" x-bind:key="district.slug">
                 <li>

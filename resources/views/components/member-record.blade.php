@@ -12,8 +12,8 @@
         <p class="text-sm text-zinc-600 dark:text-zinc-400">Their record will appear here once the questions are published.</p>
     @else
         <details class="text-sm">
-            <summary class="cursor-pointer text-zinc-700 underline-offset-4 hover:underline dark:text-zinc-300">
-                Voted on {{ $record['voted'] }} of the {{ $policyCount }} {{ Str::plural('question', $policyCount) }} <span class="text-zinc-500">(some were voted on in one house only)</span>
+            <summary class="cursor-pointer py-1 text-zinc-700 underline-offset-4 hover:underline dark:text-zinc-300">
+                Voted on {{ $record['voted'] }} of the {{ $policyCount }} {{ Str::plural('question', $policyCount) }} <span class="text-zinc-500 dark:text-zinc-400">(some were voted on in one house only)</span>
             </summary>
             <ul class="mt-3 flex flex-col divide-y divide-zinc-100 dark:divide-zinc-900">
                 @foreach ($record['stances'] as ['policy' => $policy, 'stance' => $stance])
@@ -27,6 +27,6 @@
     @endif
 
     @if ($seat->member->profile_url)
-        <p class="text-sm"><a href="{{ $seat->member->profile_url }}" class="text-zinc-600 underline underline-offset-4 dark:text-zinc-400" rel="noopener">Parliament profile</a></p>
+        <p class="text-sm"><a href="{{ $seat->member->profile_url }}" class="text-zinc-600 underline underline-offset-4 dark:text-zinc-400" rel="noopener">Parliament profile<span class="sr-only"> of {{ $seat->member->display_name }}</span></a></p>
     @endif
 </article>

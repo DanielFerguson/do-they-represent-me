@@ -5,7 +5,7 @@
         <li class="flex flex-col gap-0.5 py-2 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
             <span>
                 @if ($candidate->ballot_group)
-                    <span class="text-zinc-500">Group {{ $candidate->ballot_group }}:</span>
+                    <span class="text-zinc-500 dark:text-zinc-400">Group {{ $candidate->ballot_group }}:</span>
                 @endif
                 {{ $candidate->ballotName() }}
             </span>

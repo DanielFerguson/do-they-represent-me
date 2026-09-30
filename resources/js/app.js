@@ -167,6 +167,11 @@ Alpine.data('quiz', () => ({
 
     announce() {
         this.announcement = this.current ? `${this.positionLabel}: ${this.current.question}` : '';
+
+        // "About this question" starts closed for each new question.
+        if (this.$refs.about) {
+            this.$refs.about.open = false;
+        }
     },
 
     finish() {
@@ -188,7 +193,8 @@ Alpine.data('results', () => ({
     data: null,
     answers: {},
     district: '',
-    copied: false,
+    districtAnnouncement: '',
+    copyStatus: '',
     quizUrl: '',
     districtUrl: '',
     storageKey: '',
@@ -256,6 +262,7 @@ Alpine.data('results', () => ({
                 return {
                     ...policy,
                     yourAnswer: answer.label,
+                    caption: `How each party voted: ${policy.question}`,
                     parties: this.data.parties.map((party) => {
                         const stance = policy.stances[party.code] ?? null;
                         const agreement = stance?.agreement ?? null;
@@ -267,7 +274,7 @@ Alpine.data('results', () => ({
                             name: party.short_name,
                             stance: stanceText(stance),
                             verdict: comparable ? (matches ? 'Matches you' : 'Differs from you') : '',
-                            verdictClass: comparable ? (matches ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-500') : '',
+                            verdictClass: comparable ? (matches ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-500 dark:text-zinc-400') : '',
                         };
                     }),
                 };
@@ -331,6 +338,11 @@ Alpine.data('results', () => ({
         }
 
         history.replaceState(null, '', resultsHash(this.answers, this.district));
+
+        const representatives = this.representatives;
+        this.districtAnnouncement = representatives
+            ? `Showing your MLA and ${representatives.council.length} MLCs for ${representatives.district.name}.`
+            : '';
     },
 
     get changeAnswersUrl() {
@@ -341,9 +353,9 @@ Alpine.data('results', () => ({
         try {
             const { origin, pathname, search } = window.location;
             await navigator.clipboard.writeText(`${origin}${pathname}${search}${resultsHash(this.answers, this.representatives ? this.district : '')}`);
-            this.copied = true;
+            this.copyStatus = 'Link copied.';
         } catch {
-            this.copied = false;
+            this.copyStatus = "Couldn't copy the link. You can copy it from the address bar instead.";
         }
     },
 }));
@@ -393,7 +405,7 @@ Alpine.data('finder', () => ({
     },
 
     get activeId() {
-        return this.isOpen && this.active >= 0 ? `finder-option-${this.active}` : '';
+        return this.isOpen && this.active >= 0 ? `finder-option-${this.active}` : null;
     },
 
     get status() {
@@ -413,7 +425,7 @@ Alpine.data('finder', () => ({
     },
 
     optionClass(index) {
-        return index === this.active ? 'bg-zinc-100 dark:bg-zinc-800' : '';
+        return index === this.active ? 'bg-zinc-100 outline-2 -outline-offset-2 outline-zinc-900 dark:bg-zinc-800 dark:outline-zinc-100' : '';
     },
 
     optionDetail(locality) {
@@ -443,7 +455,7 @@ Alpine.data('finder', () => ({
         } else if (event.key === 'Enter' && this.isOpen) {
             event.preventDefault();
             this.select(this.active >= 0 ? this.active : 0);
-        } else if (event.key === 'Escape') {
+        } else if (event.key === 'Escape' || event.key === 'Tab') {
             this.open = false;
             this.active = -1;
         }
@@ -505,6 +517,10 @@ Alpine.data('myDistrict', () => ({
 
     get isMine() {
         return this.mine === this.slug;
+    },
+
+    get status() {
+        return this.isMine ? 'Your results will show these members.' : '';
     },
 
     choose() {
