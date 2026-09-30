@@ -154,5 +154,6 @@ The suburb finder and the district pages use `localities.csv`, built by `vic:bui
   - Corrections like this are listed, with their source, in `database/data/division_date_corrections.csv`.
   - They are applied before voters are matched, so everything downstream uses the corrected date: who held a seat, each voter's party, and the dates shown.
 - **Missing committee divisions.** Some committee-stage divisions appear in Hansard but not in the proceedings documents, so they cannot yet be linked to policies.
+- **A division printed without its heading.** In the committee supplement to Minutes 110–112 (1 April 2025), the vote on Aiv Puglielli's amendment No. 2 to clause 1 (AP51C, 22–17) is printed without "The Committee divided", so it isn't imported. Importing it would renumber the later divisions in that document and break their references, so it is left out.
 - **A double-issued document.** Votes and Proceedings 87–89 of 2024 was issued twice. Divisions are keyed by house, parliament, sitting number and sequence, so the second copy updates the same divisions rather than duplicating them.
 - **Free votes are not detected.** Conscience votes are not flagged automatically yet. Where one is flagged, no party is given a position on it.
