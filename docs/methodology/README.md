@@ -43,3 +43,14 @@ php artisan vic:import-candidates 2026   # once the VEC publishes the list
 `vic:score` recalculates party positions and agreement scores, and publishes the quiz data, on its own. The commands above run it automatically.
 
 To confirm a rebuild, compare division, vote and party-position counts with production, and compare party agreement scores with the policy workbook (see [Scoring: checking the results](scoring.md#checking-the-results)).
+
+**Rehearsal, 30 September 2026.** The steps above were run on an empty local database, fetching all 154 proceedings documents from the Parliament again (about three minutes) and importing workbook `64375119…efb307f`. The result matched production exactly:
+- 1,043 divisions, 53,292 votes, 7,748 party positions and 2,748 agreement scores;
+- the SHA-256 of every agreement score, and of the quiz data including policies in review, were identical.
+
+To repeat the check, compare `hash('sha256', app(StanceSnapshots::class)->previewBody(fn ($policy) => $policy->slug))` in both databases.
+
+## Hosting notes
+
+- **Caching.** Public pages are sent with `Cache-Control: public, max-age=60, s-maxage=300, stale-while-revalidate=86400` and an ETag, so browsers can reuse them. On 30 September 2026, Laravel Cloud's shared edge network did not cache HTML even with these headers (`cf-cache-status: DYNAMIC`); it caches static files only. Warm pages took about 110–130 ms to start arriving in Melbourne, so no app-side caching was added.
+- **Cookies.** The app sets no cookies on public pages. Cloudflare, which carries Laravel Cloud's traffic, adds a 30-minute bot-detection cookie, `__cf_bm`. The privacy page says so.

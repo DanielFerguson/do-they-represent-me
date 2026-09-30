@@ -17,7 +17,7 @@
 
             <h2>No cookies, analytics or tracking</h2>
             <ul>
-                <li>The public pages set no cookies.</li>
+                <li>The public pages set no cookies. The only exception is Cloudflare, which carries the site's traffic for our host, Laravel Cloud. It may set one security cookie, <code>__cf_bm</code>, to tell visitors from automated bots. It lasts 30 minutes, holds nothing about you or your answers, and isn't used for tracking.</li>
                 <li>There are no analytics, advertising or social media scripts, and nothing is loaded from other companies' servers.</li>
                 <li>We don't use your data to profile you, and we have no data to sell or share.</li>
             </ul>
