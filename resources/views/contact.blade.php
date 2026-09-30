@@ -5,7 +5,7 @@
 
 <x-layouts.public title="Contact" description="Report a mistake, ask a question or get in touch for media.">
     <div class="mx-auto flex max-w-page flex-col gap-24 px-5 pb-12 pt-8 lg:flex-row lg:items-start lg:pb-24 lg:pt-18">
-        <div class="flex min-w-0 flex-col gap-10 lg:w-[704px] lg:shrink-0 lg:gap-12">
+        <div class="flex min-w-0 flex-col gap-8 lg:w-[704px] lg:shrink-0 lg:gap-12">
             @if (session('sent'))
                 <div class="flex flex-col gap-5 pt-6">
                     <div class="flex size-12 items-center justify-center rounded-full bg-ink text-ground" aria-hidden="true">
@@ -53,7 +53,7 @@
                         @enderror
                         <div class="flex flex-col gap-2 sm:flex-row">
                             @foreach ($topics as $topic)
-                                <label class="flex h-12 flex-1 cursor-pointer items-center gap-2.5 rounded-md border border-rule-strong px-3.5 text-[15px] has-checked:border-2 has-checked:border-ink has-checked:px-[13px] has-checked:font-medium sm:h-13 sm:px-4 sm:has-checked:px-[15px]">
+                                <label class="flex h-12 cursor-pointer items-center gap-2.5 rounded-md border border-rule-strong px-3.5 text-[15px] has-checked:border-2 has-checked:border-ink has-checked:px-[13px] has-checked:font-medium sm:h-13 sm:flex-1 sm:px-4 sm:has-checked:px-[15px]">
                                     <input type="radio" name="topic" value="{{ $topic->value }}" @checked(old('topic', $selectedTopic->value) === $topic->value) @if ($loop->first) id="topic" @endif class="size-4 shrink-0 appearance-none rounded-full border-[1.5px] border-rule-strong checked:border-[5px] checked:border-ink">
                                     {{ $topic->label() }}
                                 </label>
