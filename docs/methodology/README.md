@@ -53,4 +53,4 @@ To repeat the check, compare `hash('sha256', app(StanceSnapshots::class)->previe
 ## Hosting notes
 
 - **Caching.** Public pages are sent with `Cache-Control: public, max-age=60, s-maxage=300, stale-while-revalidate=86400` and an ETag, so browsers can reuse them. On 30 September 2026, Laravel Cloud's shared edge network did not cache HTML even with these headers (`cf-cache-status: DYNAMIC`); it caches static files only. Warm pages took about 110–130 ms to start arriving in Melbourne, so no app-side caching was added.
-- **Cookies.** The app sets no cookies on public pages. Cloudflare, which carries Laravel Cloud's traffic, adds a 30-minute bot-detection cookie, `__cf_bm`. The privacy page says so.
+- **Cookies.** The app sets no cookies on public pages, and counts visits without any (see the privacy page). Cloudflare, which carries Laravel Cloud's traffic, adds a 30-minute bot-detection cookie, `__cf_bm`. The privacy page says so.

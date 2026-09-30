@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\DistrictController;
+use App\Http\Controllers\DistrictShareImageController;
 use App\Http\Controllers\InfoPagesController;
+use App\Http\Controllers\IngestController;
 use App\Http\Controllers\LocalityController;
 use App\Http\Controllers\PolicyController;
 use App\Http\Controllers\PreviewController;
@@ -39,9 +41,19 @@ Route::get('/stances/{hash}.json', StanceController::class)
     ->where('hash', '[0-9a-f]{64}')
     ->name('stances.show');
 
+Route::get('/districts/{district}/share-{hash}.png', DistrictShareImageController::class)
+    ->where(['district' => '[a-z0-9-]+', 'hash' => '[0-9a-f]{16}'])
+    ->name('districts.share');
+
 Route::get('/localities/{hash}.json', LocalityController::class)
     ->where('hash', '[0-9a-f]{64}')
     ->name('localities.show');
+
+// Anonymous analytics events, passed on to PostHog. Only its capture paths.
+Route::post('/ingest/{path}', IngestController::class)
+    ->where('path', '(e|i/v0/e|batch)/?')
+    ->middleware('throttle:ingest')
+    ->name('ingest');
 
 Route::middleware('signed:relative')->prefix('preview')->name('preview.')->group(function () {
     Route::get('/quiz', [PreviewController::class, 'quiz'])->name('quiz');

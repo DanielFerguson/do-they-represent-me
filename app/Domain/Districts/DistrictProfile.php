@@ -22,8 +22,10 @@ use Illuminate\Database\Eloquent\Collection;
  */
 class DistrictProfile
 {
+    public function __construct(private DistrictShareImage $shareImages) {}
+
     /**
-     * @return array{district: Electorate, region: ?Electorate, member: ?Record, vacancy: ?Membership, regionMembers: list<Record>, policyCount: int, localities: Collection<int, Locality>, election: ?Election, candidates: Collection<int, Candidate>, regionCandidates: Collection<int, Candidate>}
+     * @return array{shareImageUrl: string, shareImageAlt: string, district: Electorate, region: ?Electorate, member: ?Record, vacancy: ?Membership, regionMembers: list<Record>, policyCount: int, localities: Collection<int, Locality>, election: ?Election, candidates: Collection<int, Candidate>, regionCandidates: Collection<int, Candidate>}
      */
     public function for(Electorate $district): array
     {
@@ -38,6 +40,7 @@ class DistrictProfile
             ->sortBy(fn (Membership $seat): string => $seat->member->last_name.' '.$seat->member->first_name);
 
         $member = $seats->firstWhere('electorate_id', $district->id);
+        $card = $this->shareImages->cardFromSeats($district, $region, $member, $seats->where('electorate_id', $region?->id));
         $election = Election::upcoming();
         $candidates = $election === null ? new Collection : $election->candidates()
             ->whereIn('electorate_id', array_filter([$district->id, $region?->id]))
@@ -47,6 +50,8 @@ class DistrictProfile
             ->get();
 
         return [
+            'shareImageUrl' => $this->shareImages->url($district, $card),
+            'shareImageAlt' => $this->shareImages->alt($card),
             'district' => $district,
             'region' => $region,
             'member' => $member === null ? null : $this->record($member, $policies),

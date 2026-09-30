@@ -1,10 +1,11 @@
-<x-layouts.public title="Your results" :noindex="$isPreview">
+<x-layouts.public :page-type="$isPreview ? null : 'results'" title="Your results" :noindex="$isPreview">
     <div
         x-data="results"
         data-stances-url="{{ $stancesUrl }}"
         data-quiz-url="{{ $quizUrl }}"
         data-district-url="{{ $districtUrl }}"
         data-storage-key="{{ $storageKey }}"
+        data-authorisation="{{ config('site.authorisation') }}"
         class="mx-auto flex max-w-page flex-col gap-8 px-5 pb-12 pt-8 lg:pb-24 lg:pt-18"
     >
         @if ($isPreview)
@@ -17,7 +18,16 @@
 
         <div class="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-24">
             <div class="flex min-w-0 flex-col lg:w-[704px] lg:shrink-0">
-                <h1 class="eyebrow">Your results</h1>
+                <h1 class="eyebrow" x-text="eyebrow">Your results</h1>
+
+                <div x-show="isShared && showsResults" x-cloak class="mt-4 flex flex-col gap-3 rounded-md border-2 border-ink bg-surface p-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6 lg:p-5">
+                    <div class="flex flex-col gap-1">
+                        <p class="eyebrow">Shared with you</p>
+                        <p class="text-[17px] font-semibold leading-[25px] tracking-[-0.01em]" x-text="recipientHeading"></p>
+                        <p class="text-small leading-[21px] text-ink-muted">Take the quiz to see how your answers compare.</p>
+                    </div>
+                    <a x-bind:href="compareInviteUrl" x-on:click="trackCompareCta" class="flex h-12 items-center justify-center rounded-md bg-ink px-5 text-[15px] font-medium leading-[18px] text-ground hover:bg-ink/85 lg:shrink-0">Take the quiz and compare</a>
+                </div>
 
                 <noscript>
                     <p class="mt-4 text-ink-muted">Your results are worked out in your browser, which needs JavaScript. You can still read <a href="{{ route('policies.index') }}" class="link text-ink">every question and the votes behind it</a>, and <a href="{{ route('districts.index') }}" class="link text-ink">how your MPs voted</a>.</p>
@@ -46,22 +56,24 @@
 
                 <template x-if="showsResults">
                     <div class="mt-3 flex flex-col gap-10 lg:mt-4 lg:gap-14">
+                        <x-friend-comparison />
+
                         <section aria-labelledby="parties" class="flex flex-col gap-10 lg:gap-14">
                             <div class="flex flex-col gap-3 lg:gap-4">
-                                <h2 id="parties" class="text-h1-mobile font-semibold tracking-display lg:text-h1">How often each party voted the way you would have</h2>
+                                <h2 id="parties" class="text-h1-mobile font-semibold tracking-display lg:text-h1" x-text="partiesHeading">How often each party voted the way you would have</h2>
                                 <p class="text-[15px] leading-[23px] text-ink-muted lg:text-[16px] lg:leading-[25px]">
-                                    Based on your <span x-text="comparable"></span> agree or disagree answers.
+                                    <span x-text="basedOnText"></span>
                                     <span x-show="dataAsOf">Voting records up to <span x-text="dataAsOf"></span>.</span>
-                                    <span class="hidden lg:inline">Parties are listed by how often they matched you, all drawn the same way.</span>
+                                    <span class="hidden lg:inline" x-show="!isShared">Parties are listed by how often they matched you, all drawn the same way.</span>
                                 </p>
-                                <p class="text-[15px] leading-[23px] text-ink lg:text-[16px] lg:leading-[25px]">These results compare your answers with how parties voted in the 60th Parliament (2022–2026), not with their promises for the 2026 election.</p>
+                                <p class="text-[15px] leading-[23px] text-ink lg:text-[16px] lg:leading-[25px]" x-text="scopeText">These results compare your answers with how parties voted in the 60th Parliament (2022–2026), not with their promises for the 2026 election.</p>
                             </div>
 
                             <div class="flex flex-col border-t border-ink">
                                 <div class="hidden h-10 items-center gap-6 border-b border-rule lg:flex" aria-hidden="true">
                                     <span class="eyebrow w-[180px] shrink-0">Party</span>
                                     <span class="flex flex-1 justify-between text-label text-ink-muted"><span>0%</span><span>50%</span><span>100%</span></span>
-                                    <span class="eyebrow w-[144px] shrink-0 text-right">Matched you</span>
+                                    <span class="eyebrow w-[144px] shrink-0 text-right" x-text="matchedLabel">Matched you</span>
                                 </div>
 
                                 <ol>
@@ -94,10 +106,23 @@
                         </section>
 
                         <div class="flex flex-col gap-2.5 lg:hidden">
-                            <button type="button" x-on:click="copyLink" class="flex h-12 items-center justify-center rounded-md bg-ink px-4 text-[15px] font-medium leading-[18px] text-ground hover:bg-ink/85">Copy a link to these results</button>
-                            <a x-bind:href="changeAnswersUrl" class="flex h-12 items-center justify-center rounded-md border border-rule-strong px-4 text-[15px] font-medium leading-[18px] hover:border-ink">Change my answers</a>
-                            <p role="status" class="text-small text-ink-muted" x-text="copyStatus"></p>
-                            <p class="text-[13px] leading-[19px] text-ink-muted">The link keeps your answers after the #, which browsers never send to a server.</p>
+                            @if ($isPreview)
+                                <button type="button" x-on:click="copyLink" class="flex h-12 items-center justify-center rounded-md bg-ink px-4 text-[15px] font-medium leading-[18px] text-ground hover:bg-ink/85">Copy a link to these results</button>
+                            @else
+                                <button type="button" x-show="!isShared" x-on:click="openShare" class="flex h-12 items-center justify-center gap-2 rounded-md bg-ink px-4 text-[15px] font-medium leading-[18px] text-ground hover:bg-ink/85"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" class="shrink-0"><path d="M8 10.5V2M8 2L4.75 5.25M8 2l3.25 3.25M3 9v4.25c0 .414.336.75.75.75h8.5a.75.75 0 0 0 .75-.75V9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>Share</button>
+                            @endif
+                            @unless ($isPreview)
+                                <button type="button" x-show="isShared" x-cloak x-on:click="copyLink" class="flex h-12 items-center justify-center rounded-md bg-ink px-4 text-[15px] font-medium leading-[18px] text-ground hover:bg-ink/85">Copy a link to these results</button>
+                            @endunless
+                            <a x-show="!isShared" x-bind:href="changeAnswersUrl" class="flex h-12 items-center justify-center rounded-md border border-rule-strong px-4 text-[15px] font-medium leading-[18px] hover:border-ink">Change my answers</a>
+                            @if ($isPreview)
+                                <p role="status" class="text-small text-ink-muted" x-text="copyStatus"></p>
+                                <p class="text-[13px] leading-[19px] text-ink-muted">The link keeps your answers after the #, which browsers never send to a server.</p>
+                            @else
+                                <p role="status" x-show="isShared" x-cloak class="text-small text-ink-muted" x-text="copyStatus"></p>
+                                <p x-show="!isShared" class="text-[13px] leading-[19px] text-ink-muted">Share a link, or an image of these results. Nothing is sent to us.</p>
+                                <p x-show="isShared" x-cloak class="text-[13px] leading-[19px] text-ink-muted">The answers are in the link, after the #, which browsers never send to a server.</p>
+                            @endif
                         </div>
 
                         <section x-show="hasMembers" aria-labelledby="representatives" class="flex flex-col gap-5 border-t border-ink pt-4 lg:pt-5">
@@ -166,7 +191,7 @@
                                             <span class="text-[15px] font-medium leading-[22px] group-hover:underline group-hover:underline-offset-4 lg:text-[16px] lg:leading-6" x-text="policy.question"></span>
                                         </span>
                                         <span class="flex items-center justify-between gap-6 lg:shrink-0">
-                                            <span class="text-[13px] leading-4 text-ink-muted lg:w-[112px] lg:text-right lg:text-small lg:leading-[18px] lg:text-ink lg:group-open:text-ink-muted">You: <span x-text="policy.yourAnswer"></span></span>
+                                            <span class="text-[13px] leading-4 text-ink-muted lg:w-[112px] lg:text-right lg:text-small lg:leading-[18px] lg:text-ink lg:group-open:text-ink-muted"><span x-text="answerWho"></span>: <span x-text="policy.yourAnswer"></span></span>
                                             <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" class="shrink-0 text-ink-muted transition-transform group-open:rotate-180 group-open:text-ink motion-reduce:transition-none"><path d="M2.5 4L6 7.5L9.5 4" fill="none" stroke="currentColor" stroke-width="1.5" /></svg>
                                         </span>
                                     </summary>
@@ -221,7 +246,7 @@
             <template x-if="showsResults">
                 <aside class="hidden w-80 shrink-0 flex-col gap-8 lg:flex" aria-label="Your answers and sharing">
                     <div class="flex flex-col">
-                        <h2 class="eyebrow border-b border-rule pb-3">Your answers</h2>
+                        <h2 class="eyebrow border-b border-rule pb-3" x-text="answersHeading">Your answers</h2>
                         <dl class="text-small leading-[18px]">
                             <div class="flex h-10 items-center justify-between border-b border-rule">
                                 <dt>Agree or disagree</dt>
@@ -238,11 +263,43 @@
                         </dl>
                     </div>
 
+                    <div x-show="hasCompare" x-cloak class="flex flex-col">
+                        <h2 class="eyebrow border-b border-rule pb-3" x-text="comparingWithLabel"></h2>
+                        <dl class="text-small leading-[18px]">
+                            <div class="flex h-10 items-center justify-between border-b border-rule">
+                                <dt>You both answered</dt>
+                                <dd class="font-semibold" x-text="compareShared"></dd>
+                            </div>
+                            <div class="flex h-10 items-center justify-between border-b border-rule text-ink-muted">
+                                <dt>Only you answered</dt>
+                                <dd x-text="onlyMineCount"></dd>
+                            </div>
+                            <div class="flex h-10 items-center justify-between border-b border-rule text-ink-muted">
+                                <dt x-text="onlyTheirsLabel"></dt>
+                                <dd x-text="onlyTheirsCount"></dd>
+                            </div>
+                        </dl>
+                        <button type="button" x-on:click="stopComparing" class="link self-start pt-3 text-small text-ink-muted">Stop comparing</button>
+                    </div>
+
                     <div class="flex flex-col gap-3">
-                        <button type="button" x-on:click="copyLink" class="flex h-12 items-center justify-center rounded-md bg-ink px-4 text-[15px] font-medium leading-[18px] text-ground hover:bg-ink/85">Copy a link to these results</button>
-                        <a x-bind:href="changeAnswersUrl" class="flex h-12 items-center justify-center rounded-md border border-rule-strong px-4 text-[15px] font-medium leading-[18px] hover:border-ink">Change my answers</a>
-                        <p role="status" class="text-small text-ink-muted" x-text="copyStatus"></p>
-                        <p class="text-[13px] leading-[19px] text-ink-muted">The link keeps your answers after the #, which browsers never send to a server.</p>
+                        @if ($isPreview)
+                            <button type="button" x-on:click="copyLink" class="flex h-12 items-center justify-center rounded-md bg-ink px-4 text-[15px] font-medium leading-[18px] text-ground hover:bg-ink/85">Copy a link to these results</button>
+                        @else
+                            <button type="button" x-show="!isShared" x-on:click="openShare" class="flex h-12 items-center justify-center gap-2 rounded-md bg-ink px-4 text-[15px] font-medium leading-[18px] text-ground hover:bg-ink/85"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" class="shrink-0"><path d="M8 10.5V2M8 2L4.75 5.25M8 2l3.25 3.25M3 9v4.25c0 .414.336.75.75.75h8.5a.75.75 0 0 0 .75-.75V9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>Share</button>
+                        @endif
+                        @unless ($isPreview)
+                            <button type="button" x-show="isShared" x-cloak x-on:click="copyLink" class="flex h-12 items-center justify-center rounded-md bg-ink px-4 text-[15px] font-medium leading-[18px] text-ground hover:bg-ink/85">Copy a link to these results</button>
+                        @endunless
+                        <a x-show="!isShared" x-bind:href="changeAnswersUrl" class="flex h-12 items-center justify-center rounded-md border border-rule-strong px-4 text-[15px] font-medium leading-[18px] hover:border-ink">Change my answers</a>
+                        @if ($isPreview)
+                            <p role="status" class="text-small text-ink-muted" x-text="copyStatus"></p>
+                            <p class="text-[13px] leading-[19px] text-ink-muted">The link keeps your answers after the #, which browsers never send to a server.</p>
+                        @else
+                            <p role="status" x-show="isShared" x-cloak class="text-small text-ink-muted" x-text="copyStatus"></p>
+                            <p x-show="!isShared" class="text-[13px] leading-[19px] text-ink-muted">Share a link, or an image of these results. Nothing is sent to us.</p>
+                            <p x-show="isShared" x-cloak class="text-[13px] leading-[19px] text-ink-muted">The answers are in the link, after the #, which browsers never send to a server.</p>
+                        @endif
                     </div>
 
                     <div class="flex flex-col gap-1.5 border-t border-rule pt-4 text-small">
@@ -253,5 +310,9 @@
                 </aside>
             </template>
         </div>
+
+        @unless ($isPreview)
+            <x-share-sheet />
+        @endunless
     </div>
 </x-layouts.public>

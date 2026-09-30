@@ -1,24 +1,41 @@
 import Alpine from '@alpinejs/csp';
+import { answeredBucket, browserSignalsOptOut, isOptedOut, optIn, optOut, resultsSource, startAnalytics, track } from './analytics';
 import { describeDistricts, prepareLocalities, searchLocalities } from './finder';
 import {
     ANSWERS,
     MIN_COMPARABLE_ANSWERS,
     MIN_SHARED_QUESTIONS,
     answersFromHash,
+    clearInvite,
     clearProgress,
+    compareAnswers,
     comparableAnswerCount,
+    consumeArrivedFromQuiz,
     districtFromHash,
     encodeAnswers,
+    friendsFromHash,
+    inviteHash,
+    isSharedResults,
     loadDistrict,
+    loadInvite,
     loadProgress,
+    markArrivedFromQuiz,
+    ownerNameFromHash,
     representativesFor,
     resultsHash,
+    saveInvite,
+    shareHash,
     saveDistrict,
     saveProgress,
     scoreMembers,
     scoreParties,
     stanceText,
 } from './quiz';
+import { RESULTS_TEXT, canShareFiles, canShareLink, channelLinks, districtText, inviteText, withName } from './share';
+
+// Anonymous visit counts. They start only on pages marked for it, and never
+// carry answers or anything from the address. See analytics.js.
+startAnalytics({ key: document.body.dataset.posthogKey, pageType: document.body.dataset.pageType });
 
 async function fetchJson(url) {
     const response = await fetch(url, { headers: { Accept: 'application/json' } });
@@ -39,10 +56,21 @@ Alpine.data('quiz', () => ({
     announcement: '',
     resultsUrl: '',
     storageKey: '',
+    invite: null,
 
     async init() {
         this.resultsUrl = this.$el.dataset.resultsUrl;
         this.storageKey = this.$el.dataset.storageKey;
+
+        // Someone's invitation to compare, from their link or earlier in this tab.
+        const [linked] = friendsFromHash(window.location.hash);
+
+        if (linked) {
+            saveInvite(linked);
+            track('invite_landed');
+        }
+
+        this.invite = linked ?? loadInvite();
 
         try {
             this.data = await fetchJson(this.$el.dataset.stancesUrl);
@@ -67,6 +95,29 @@ Alpine.data('quiz', () => ({
 
     get total() {
         return this.data ? this.data.policies.length : 0;
+    },
+
+    get hasInvite() {
+        return this.invite !== null;
+    },
+
+    get inviteEyebrow() {
+        return this.invite?.name ? `Invitation from ${this.invite.name}` : 'Invitation to compare';
+    },
+
+    get inviteHeading() {
+        const who = this.invite?.name || 'Someone';
+
+        return `${who} answered ${comparableAnswerCount(this.invite?.answers ?? {})} questions and wants to see how you compare.`;
+    },
+
+    /** Dismissing the invitation forgets it, and takes it out of the address so a reload doesn't bring it back. */
+    dismissInvite() {
+        this.invite = null;
+        clearInvite();
+
+        const own = encodeAnswers(answersFromHash(window.location.hash));
+        history.replaceState(null, '', `${window.location.pathname}${window.location.search}${own ? `#a=${own}` : ''}`);
     },
 
     get current() {
@@ -157,6 +208,13 @@ Alpine.data('quiz', () => ({
     },
 
     choose(answer) {
+        // Position only. The answer itself is never counted.
+        if (!this.hasStarted) {
+            track('quiz_started', { position: this.index + 1 });
+        }
+
+        track('question_answered', { position: this.index + 1, total: this.total });
+
         this.answers = { ...this.answers, [this.current.id]: answer };
 
         if (this.index < this.total - 1) {
@@ -231,10 +289,12 @@ Alpine.data('quiz', () => ({
 
     finish() {
         this.save();
-        window.location.href = `${this.resultsUrl}${resultsHash(this.answers, loadDistrict())}`;
+        markArrivedFromQuiz();
+        window.location.href = `${this.resultsUrl}${resultsHash(this.answers, loadDistrict(), this.invite ? [this.invite] : [])}`;
     },
 
     startAgain() {
+        track('start_again');
         clearProgress(this.storageKey);
         this.answers = {};
         this.index = 0;
@@ -253,8 +313,34 @@ Alpine.data('results', () => ({
     quizUrl: '',
     districtUrl: '',
     storageKey: '',
+    authorisation: '',
+
+    // Comparing with a friend, and looking at someone else's results
+    friends: [],
+    ownerName: '',
+    isShared: false,
+
+    // The share sheet
+    shareKind: 'results',
+    shareName: '',
+    shareStep: 1,
+    shareStatus: '',
+    copied: false,
+    card: null,
+    cardFile: null,
+    cardFailed: false,
+    wide: false,
 
     async init() {
+        this.authorisation = this.$el.dataset.authorisation ?? '';
+
+        // The share sheet shows everything at once on a wide screen and in two steps on a narrow one.
+        const wide = window.matchMedia('(min-width: 1024px)');
+        this.wide = wide.matches;
+        wide.addEventListener('change', (event) => {
+            this.wide = event.matches;
+        });
+
         this.quizUrl = this.$el.dataset.quizUrl;
         this.districtUrl = this.$el.dataset.districtUrl;
         this.storageKey = this.$el.dataset.storageKey;
@@ -263,13 +349,80 @@ Alpine.data('results', () => ({
             this.data = await fetchJson(this.$el.dataset.stancesUrl);
 
             const fromLink = answersFromHash(window.location.hash);
-            this.answers = Object.keys(fromLink).length ? fromLink : (loadProgress(this.storageKey, this.data.version)?.answers ?? {});
+            const saved = loadProgress(this.storageKey, this.data.version)?.answers ?? {};
+            const hasLink = Object.keys(fromLink).length > 0;
+
+            this.answers = hasLink ? fromLink : saved;
             this.district = districtFromHash(window.location.hash) ?? loadDistrict() ?? '';
+            this.ownerName = ownerNameFromHash(window.location.hash);
+            this.isShared = isSharedResults(saved, fromLink);
+            this.startComparing(friendsFromHash(window.location.hash));
+
+            this.countVisit({ hasLink, shared: isSharedResults(saved, fromLink), arrivedFromQuiz: consumeArrivedFromQuiz() });
         } catch {
             this.failed = true;
         } finally {
             this.loading = false;
         }
+    },
+
+    /**
+     * A friend's answers arrive in the link, but live only for this tab after that, and the link in the
+     * address bar is cut back to the visitor's own answers. So a link copied from the address bar never
+     * carries a friend's answers to anyone else.
+     */
+    startComparing(linked) {
+        if (this.isShared) {
+            track('recipient_banner_shown');
+
+            return;
+        }
+
+        const [first] = linked;
+
+        if (first) {
+            saveInvite(first);
+            history.replaceState(null, '', this.currentHash());
+        }
+
+        const friend = first ?? loadInvite();
+        this.friends = friend ? [friend] : [];
+
+        if (friend && this.enoughAnswers) {
+            track('compare_viewed', { group_size: 2 });
+        }
+    },
+
+    stopComparing() {
+        clearInvite();
+        this.friends = [];
+    },
+
+    /** The part of the address after the #: the visitor's own answers, never a friend's. */
+    currentHash() {
+        const district = this.representatives ? this.district : '';
+
+        return this.isShared
+            ? shareHash(this.answers, district, this.ownerName)
+            : resultsHash(this.answers, district);
+    },
+
+    trackCompareCta() {
+        track('compare_cta_clicked');
+    },
+
+    /** Counts the visit by how they got here, and how many answers they gave. Never which answers. */
+    countVisit({ hasLink, shared, arrivedFromQuiz }) {
+        if (!this.enoughAnswers) {
+            track('results_too_few');
+
+            return;
+        }
+
+        track('results_viewed', {
+            source: resultsSource({ fromLink: hasLink, isShared: shared, arrivedFromQuiz }),
+            answered_bucket: answeredBucket(this.comparable),
+        });
     },
 
     /**
@@ -426,7 +579,7 @@ Alpine.data('results', () => ({
     },
 
     get hasMembers() {
-        return (this.data?.members ?? []).length > 0;
+        return !this.isShared && (this.data?.members ?? []).length > 0;
     },
 
     get districts() {
@@ -486,9 +639,10 @@ Alpine.data('results', () => ({
 
         if (this.district) {
             saveDistrict(this.district);
+            track('district_chosen', { source: 'results' });
         }
 
-        history.replaceState(null, '', resultsHash(this.answers, this.district));
+        history.replaceState(null, '', this.currentHash());
 
         const representatives = this.representatives;
         this.districtAnnouncement = representatives
@@ -500,14 +654,396 @@ Alpine.data('results', () => ({
         return `${this.quizUrl}#a=${encodeAnswers(this.answers)}`;
     },
 
+    // ---- Someone else's results ---------------------------------------------
+
+    get eyebrow() {
+        return this.isShared ? 'Shared results' : 'Your results';
+    },
+
+    get partiesHeading() {
+        return `How often each party voted the way ${this.isShared ? (this.ownerName || 'they') : 'you'} would have`;
+    },
+
+    get basedOnText() {
+        return `Based on ${this.isShared ? (this.ownerName ? `${this.ownerName}'s` : 'their') : 'your'} ${this.comparable} agree or disagree answers.`;
+    },
+
+    get scopeText() {
+        return `These results compare ${this.isShared ? 'these' : 'your'} answers with how parties voted in the 60th Parliament (2022–2026), not with their promises for the 2026 election.`;
+    },
+
+    get matchedLabel() {
+        return this.isShared ? `Matched ${this.ownerName || 'them'}` : 'Matched you';
+    },
+
+    get answersHeading() {
+        return this.isShared ? `${this.ownerName ? `${this.ownerName}'s` : 'Their'} answers` : 'Your answers';
+    },
+
+    get answerWho() {
+        return this.isShared ? (this.ownerName || 'They') : 'You';
+    },
+
+    get recipientHeading() {
+        return this.ownerName
+            ? `You're looking at ${this.ownerName}'s results, not yours.`
+            : "You're looking at someone else's results, not yours.";
+    },
+
+    /** The quiz, with the sender's answers in an invitation to compare. */
+    get compareInviteUrl() {
+        return `${this.quizUrl}${inviteHash(this.answers, this.ownerName)}`;
+    },
+
+    // ---- Comparing with a friend ----------------------------------------------
+
+    get friend() {
+        return this.friends[0] ?? null;
+    },
+
+    get friendName() {
+        return this.friend?.name || 'your friend';
+    },
+
+    get friendNote() {
+        return `${this.friend?.name ? `${this.friend.name}'s` : "Your friend's"} answers came from the link you opened. They're kept only while this tab is open, and nothing is sent to us.`;
+    },
+
+    get comparison() {
+        return this.friend && this.data ? compareAnswers(this.answers, this.friend.answers, this.data.policies) : null;
+    },
+
+    get hasCompare() {
+        return this.showsResults && this.comparison !== null;
+    },
+
+    get compareShared() {
+        return this.comparison?.shared ?? 0;
+    },
+
+    get compareSameCount() {
+        return this.comparison?.same.length ?? 0;
+    },
+
+    get compareDifferentCount() {
+        return this.comparison?.different.length ?? 0;
+    },
+
+    get onlyMineCount() {
+        return this.comparison?.onlyMine.length ?? 0;
+    },
+
+    get onlyTheirsCount() {
+        return this.comparison?.onlyTheirs.length ?? 0;
+    },
+
+    get compareHeading() {
+        const comparison = this.comparison;
+
+        if (!comparison || comparison.percent === null) {
+            return `You and ${this.friendName} have too few answers in common to compare`;
+        }
+
+        return `You and ${this.friendName} agreed on ${comparison.same.length} of ${comparison.shared} questions`;
+    },
+
+    get compareSummary() {
+        return this.compareShared
+            ? `Out of the ${this.compareShared} questions you both answered agree or disagree. Unsure and skipped questions aren't counted.`
+            : `You haven't both answered agree or disagree on enough of the same questions yet.`;
+    },
+
+    get agreementSegments() {
+        const comparison = this.comparison;
+
+        if (!comparison) {
+            return [];
+        }
+
+        return [
+            ...comparison.same.map((policy) => ({ key: `same-${policy.id}`, segmentClass: 'bg-ink' })),
+            ...comparison.different.map((policy) => ({ key: `different-${policy.id}`, segmentClass: 'border-[1.5px] border-ink' })),
+        ];
+    },
+
+    describeComparison(policy) {
+        return {
+            id: policy.id,
+            topic: policy.topic,
+            question: policy.question,
+            mine: ANSWERS[this.answers[policy.id]]?.label ?? '',
+            theirs: ANSWERS[this.friend.answers[policy.id]]?.label ?? '',
+        };
+    },
+
+    get differences() {
+        return (this.comparison?.different ?? []).map((policy) => this.describeComparison(policy));
+    },
+
+    get agreements() {
+        return (this.comparison?.same ?? []).map((policy) => this.describeComparison(policy));
+    },
+
+    get differenceCountText() {
+        return this.questionsText(this.compareDifferentCount);
+    },
+
+    get agreementCountText() {
+        return this.questionsText(this.compareSameCount);
+    },
+
+    get comparingWithLabel() {
+        return `Comparing with ${this.friendName}`;
+    },
+
+    get onlyTheirsLabel() {
+        return `Only ${this.friendName} answered`;
+    },
+
+    /** Each party in the visitor's order, with both people's percentages. */
+    get partyComparison() {
+        if (!this.friend || !this.data) {
+            return [];
+        }
+
+        const theirs = new Map(scoreParties(this.data, this.friend.answers)
+            .filter((party) => party.shared >= MIN_SHARED_QUESTIONS)
+            .map((party) => [party.code, party.percent]));
+
+        return this.rankedParties.map((party) => {
+            const other = theirs.get(party.code);
+
+            return {
+                code: party.code,
+                name: party.short_name,
+                swatchClass: party.swatchClass,
+                mineText: party.percentText,
+                mineStyle: party.barStyle,
+                theirsText: other === undefined ? '—' : `${other}%`,
+                theirsStyle: { width: `${other ?? 0}%` },
+            };
+        });
+    },
+
     async copyLink() {
         try {
             const { origin, pathname, search } = window.location;
-            await navigator.clipboard.writeText(`${origin}${pathname}${search}${resultsHash(this.answers, this.representatives ? this.district : '')}`);
+            await navigator.clipboard.writeText(`${origin}${pathname}${search}${this.currentHash()}`);
             this.copyStatus = 'Link copied.';
         } catch {
             this.copyStatus = "Couldn't copy the link. You can copy it from the address bar instead.";
         }
+    },
+
+    // ---- The share sheet -------------------------------------------------
+
+    get isResultsKind() {
+        return this.shareKind === 'results';
+    },
+
+    get showsChoice() {
+        return this.wide || this.shareStep === 1;
+    },
+
+    get showsShare() {
+        return this.wide || this.shareStep === 2;
+    },
+
+    get showsContinue() {
+        return !this.wide && this.shareStep === 1;
+    },
+
+    get showsBack() {
+        return !this.wide && this.shareStep === 2;
+    },
+
+    get showsCard() {
+        return this.showsShare && this.isResultsKind;
+    },
+
+    get sheetTitle() {
+        if (!this.showsBack) {
+            return 'Share';
+        }
+
+        return this.isResultsKind ? 'Share my results' : 'Invite someone';
+    },
+
+    get bodyClass() {
+        return this.isResultsKind ? 'lg:grid-cols-[264px_1fr]' : 'lg:grid-cols-1';
+    },
+
+    get nameHint() {
+        return this.isResultsKind
+            ? "So they know it's from you. It goes in the link after the #, which is never sent to us."
+            : "So they know it's from you. It goes in the message, not the link.";
+    },
+
+    /** The link to share: the visitor's own answers for "My results", the plain quiz for an invitation. */
+    get shareUrl() {
+        if (!this.isResultsKind) {
+            return this.quizUrl;
+        }
+
+        const { origin, pathname } = window.location;
+
+        return `${origin}${pathname}${shareHash(this.answers, this.representatives ? this.district : '', this.shareName)}`;
+    },
+
+    get shareText() {
+        return withName(this.isResultsKind ? RESULTS_TEXT : inviteText(this.policyCount), this.shareName);
+    },
+
+    get channels() {
+        return channelLinks(this.shareText, this.shareUrl);
+    },
+
+    get cardSrc() {
+        return this.card?.dataUrl ?? '';
+    },
+
+    get canNative() {
+        return this.isResultsKind ? (this.card !== null && canShareFiles(navigator, this.cardFile)) : canShareLink(navigator);
+    },
+
+    get nativeLabel() {
+        return this.isResultsKind ? 'Share image and link…' : 'Share…';
+    },
+
+    get saveClass() {
+        return this.canNative
+            ? 'border border-rule-strong hover:border-ink'
+            : 'bg-ink text-ground hover:bg-ink/85';
+    },
+
+    get copyLabel() {
+        return this.copied ? 'Link copied' : 'Copy link';
+    },
+
+    openShare() {
+        this.shareStep = this.wide ? 2 : 1;
+        this.shareStatus = '';
+        this.copied = false;
+        this.$refs.sheet.showModal();
+
+        if (this.wide) {
+            this.startShare();
+        }
+    },
+
+    closeShare() {
+        this.$refs.sheet.close();
+    },
+
+    /** A click on the backdrop, which is the dialog itself, closes the sheet. */
+    onSheetClick(event) {
+        if (event.target === this.$refs.sheet) {
+            this.closeShare();
+        }
+    },
+
+    onSheetClosed() {
+        this.shareStep = 1;
+    },
+
+    continueShare() {
+        this.shareStep = 2;
+        this.startShare();
+    },
+
+    backShare() {
+        this.shareStep = 1;
+    },
+
+    onKindChange() {
+        this.copied = false;
+        this.shareStatus = '';
+
+        if (this.showsShare) {
+            this.startShare();
+        }
+    },
+
+    startShare() {
+        track('share_opened', { kind: this.shareKind });
+
+        if (this.isResultsKind && !this.card) {
+            this.makeCard();
+        }
+    },
+
+    async makeCard() {
+        this.cardFailed = false;
+
+        try {
+            const { renderCard } = await import('./share-card-render');
+            const comparable = this.comparable;
+
+            const card = await renderCard({
+                ranked: this.rankedParties.map((party) => ({
+                    name: party.short_name,
+                    percent: party.percent,
+                    sharedText: `${party.shared}/${comparable}`,
+                    code: party.code,
+                })),
+                notEnough: this.partiesWithoutRecord.map((party) => party.short_name),
+                meta: {
+                    comparable,
+                    dataAsOf: this.dataAsOf || null,
+                    host: window.location.host,
+                    authorisation: this.authorisation || null,
+                },
+            });
+
+            this.cardFile = new File([card.blob], 'my-results.png', { type: 'image/png' });
+            this.card = card;
+        } catch {
+            this.cardFailed = true;
+        }
+    },
+
+    async nativeShare() {
+        try {
+            if (this.isResultsKind) {
+                await navigator.share({ files: [this.cardFile], text: `${this.shareText} ${this.shareUrl}` });
+            } else {
+                await navigator.share({ text: this.shareText, url: this.shareUrl });
+            }
+
+            track('share_action', { kind: this.shareKind, channel: 'native' });
+        } catch {
+            // Closing the share sheet without choosing an app is not an error.
+        }
+    },
+
+    saveImage() {
+        if (!this.card?.blob) {
+            return;
+        }
+
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(this.card.blob);
+        link.download = 'my-results.png';
+        link.click();
+        window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+
+        this.shareStatus = 'Image saved.';
+        track('share_action', { kind: this.shareKind, channel: 'save_image' });
+    },
+
+    async copyShareLink() {
+        try {
+            await navigator.clipboard.writeText(this.shareUrl);
+            this.copied = true;
+            this.shareStatus = 'Link copied.';
+            track('share_action', { kind: this.shareKind, channel: 'copy' });
+        } catch {
+            this.shareStatus = "Couldn't copy the link. You can copy it from the box below.";
+        }
+    },
+
+    trackChannel(channel) {
+        track('share_action', { kind: this.shareKind, channel });
     },
 }));
 
@@ -533,6 +1069,7 @@ Alpine.data('finder', () => ({
         }
 
         this.loading = true;
+        track('finder_used');
 
         try {
             this.data = prepareLocalities(await fetchJson(this.url));
@@ -679,10 +1216,12 @@ Alpine.data('finder', () => ({
 
     remember(slug) {
         saveDistrict(slug);
+        track('district_chosen', { source: 'finder' });
     },
 
     go(slug) {
         saveDistrict(slug);
+        track('district_chosen', { source: 'finder' });
         window.location.href = this.districtLink(slug);
     },
 }));
@@ -707,6 +1246,114 @@ Alpine.data('myDistrict', () => ({
     choose() {
         saveDistrict(this.slug);
         this.mine = this.slug;
+        track('district_chosen', { source: 'district_page' });
+    },
+
+    takeQuiz() {
+        track('district_take_quiz_clicked');
+    },
+}));
+
+/**
+ * Sharing a district page: the link to the page, and its picture (made on the
+ * server) shows in the preview. No answers are involved.
+ */
+Alpine.data('shareDistrict', () => ({
+    url: '',
+    name: '',
+    status: '',
+    copied: false,
+
+    init() {
+        this.url = this.$el.dataset.url;
+        this.name = this.$el.dataset.name;
+    },
+
+    get text() {
+        return districtText(this.name);
+    },
+
+    get channels() {
+        return channelLinks(this.text, this.url);
+    },
+
+    get canNative() {
+        return canShareLink(navigator);
+    },
+
+    get copyLabel() {
+        return this.copied ? 'Link copied' : 'Copy link';
+    },
+
+    open() {
+        this.status = '';
+        this.copied = false;
+        this.$refs.sheet.showModal();
+        track('share_opened', { kind: 'district' });
+    },
+
+    close() {
+        this.$refs.sheet.close();
+    },
+
+    /** A click on the backdrop, which is the dialog itself, closes the sheet. */
+    onSheetClick(event) {
+        if (event.target === this.$refs.sheet) {
+            this.close();
+        }
+    },
+
+    async nativeShare() {
+        try {
+            await navigator.share({ text: this.text, url: this.url });
+            track('share_action', { kind: 'district', channel: 'native' });
+        } catch {
+            // Closing the share sheet without choosing an app is not an error.
+        }
+    },
+
+    async copyLink() {
+        try {
+            await navigator.clipboard.writeText(this.url);
+            this.copied = true;
+            this.status = 'Link copied.';
+            track('share_action', { kind: 'district', channel: 'copy' });
+        } catch {
+            this.status = "Couldn't copy the link. You can copy it from the address bar instead.";
+        }
+    },
+
+    trackChannel(channel) {
+        track('share_action', { kind: 'district', channel });
+    },
+}));
+
+/** The privacy page's switch for anonymous visit counts, kept in this browser only. */
+Alpine.data('analyticsChoice', () => ({
+    off: false,
+    signalled: false,
+
+    init() {
+        this.off = isOptedOut();
+        this.signalled = browserSignalsOptOut();
+    },
+
+    get label() {
+        return this.off ? 'Turn counting back on' : 'Turn off counting on this device';
+    },
+
+    get status() {
+        return this.off ? 'Counting is off on this device.' : 'Counting is on.';
+    },
+
+    toggle() {
+        if (this.off) {
+            optIn();
+        } else {
+            optOut();
+        }
+
+        this.off = isOptedOut();
     },
 }));
 

@@ -23,7 +23,7 @@
     $cellClass = 'h-[34px] border-t border-rule text-[13px] leading-4 lg:h-9 lg:text-small lg:leading-[18px]';
 @endphp
 
-<x-layouts.public share-image="images/share-questions.png" :title="$policy->title" :noindex="$isPreview" :description="$policy->question">
+<x-layouts.public :page-type="$isPreview ? null : 'policy'" share-image="images/share-questions.png" :title="$policy->title" :noindex="$isPreview" :description="$policy->question">
     <div class="mx-auto flex max-w-page flex-col gap-6 px-5 pb-12 pt-5 lg:flex-row lg:items-start lg:gap-24 lg:pb-24 lg:pt-18">
         <article class="flex min-w-0 flex-col gap-6 lg:w-[704px] lg:shrink-0 lg:gap-12">
             @if ($isPreview)

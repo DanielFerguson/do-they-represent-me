@@ -47,6 +47,24 @@ it('passes when the site is ready for the soft launch', function () {
         ->assertSuccessful();
 });
 
+it('flags missing visit counting without failing the check', function () {
+    readyToLaunch();
+    config(['services.posthog.key' => null]);
+
+    $this->artisan('vic:launch-check')
+        ->expectsOutputToContain('POSTHOG_KEY is not set, so no visits are counted')
+        ->assertSuccessful();
+});
+
+it('confirms visit counting is on when a key is set', function () {
+    readyToLaunch();
+    config(['services.posthog.key' => 'phc_test']);
+
+    $this->artisan('vic:launch-check')
+        ->expectsOutputToContain('✓ Visit counts are switched on')
+        ->assertSuccessful();
+});
+
 it('fails, naming the problem, when a soft-launch condition is not met', function (Closure $break, string $problem) {
     readyToLaunch();
     $break();

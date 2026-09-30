@@ -4,7 +4,12 @@
     'canonical' => true,
     'description' => 'See how Victorian parties and MPs actually voted in State Parliament, and compare their record with your own views.',
     'showRecordsDate' => true,
+    // A path under public/, or a full address for a picture made for the page.
     'shareImage' => 'images/share.png',
+    'shareImageAlt' => "Do They Represent Me? How Victoria's parties and MPs voted in State Parliament.",
+    // Set on the pages that count visits. Left empty on previews, the contact
+    // form and error pages, which never load analytics.
+    'pageType' => null,
 ])
 
 @php
@@ -47,10 +52,10 @@
         <meta property="og:title" content="{{ $title ?? 'Do They Represent Me?' }}">
         <meta property="og:description" content="{{ $description }}">
         <meta property="og:url" content="{{ url()->current() }}">
-        <meta property="og:image" content="{{ asset($shareImage) }}">
+        <meta property="og:image" content="{{ str_starts_with($shareImage, 'http') ? $shareImage : asset($shareImage) }}">
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="630">
-        <meta property="og:image:alt" content="Do They Represent Me? How Victoria's parties and MPs voted in State Parliament.">
+        <meta property="og:image:alt" content="{{ $shareImageAlt }}">
         <meta name="twitter:card" content="summary_large_image">
 
         <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="32x32">
@@ -59,7 +64,7 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="flex min-h-screen flex-col bg-ground text-ink">
+    <body class="flex min-h-screen flex-col bg-ground text-ink" @if ($pageType && config('services.posthog.key')) data-posthog-key="{{ config('services.posthog.key') }}" data-page-type="{{ $pageType }}" @endif>
         <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-30 focus:rounded-md focus:bg-ink focus:px-3 focus:py-2 focus:text-ground">Skip to content</a>
 
         <header x-data="menu" x-on:keydown.escape="close" class="relative">

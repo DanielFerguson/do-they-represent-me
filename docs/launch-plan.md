@@ -35,6 +35,22 @@ Building the date-independent code early would only mean guessing what the teste
 | **Check the admin panel** on dotheyrepresentme.com under the admin CSP. **Done 30 Sep 2026:** login, Messages and "Mark handled", the workbook upload and the preview-link modal. | The admin doesn't work on the laravel.cloud address, because production forces the root URL. |
 | **Publish at least 15 questions.** **Done 30 Sep 2026:** 22 published from `policy-workbook-v3.xlsx` after the AI final review; P17 and P28 dropped for too little record. | A published question where no party has enough votes for a figure fails `vic:audit`, unless a note or more votes are added. |
 
+## Sharing and analytics: before the announcement on 17 November
+
+Built on the `share-and-analytics` branch: the share card and share sheet on the results page, friend compare, per-district link previews and PostHog counts. Before the announcement:
+
+| Item | Why |
+|---|---|
+| **Set `POSTHOG_KEY` on Cloud**, with `POSTHOG_HOST` left at its default (US cloud). `vic:launch-check` shows a notice until it is set. | No key, no counting. |
+| **In the PostHog project:** turn on "Discard client IP data", turn off autocapture and session replay, set retention to 12 months. | The privacy page says PostHog discards IP addresses and keeps counts for at most 12 months. |
+| **Build the PostHog funnels:** home page → first answer → results (`results_viewed`, source `quiz`) → `share_action`; `share_opened` → `share_action`; `invite_landed` → `results_viewed`. | The events are in `resources/js/analytics.js`. |
+| **Check GD on Cloud:** run `php -r 'print_r(gd_info());'` on the environment and confirm `FreeType Support => 1`. | The district pictures need it. |
+| **Check the picture headers** after deploying: `curl -I` a district's `og:image` address and look at `Cache-Control` and `cf-cache-status`. | The edge may not cache a dynamic `.png` path. |
+| **Check the cache store behind `/ingest`'s limiter.** It is `database` by default, so each event costs a query. | A launch-day burst of events shouldn't load the database. |
+| **Test a real share** on an iPhone and an Android phone: the native share sheet with the picture, Save image, and a link pasted into WhatsApp and Facebook. | The simulator can't drive the native share sheet. |
+
+The authorisation statement is printed on every share card and district picture when `SITE_AUTHORISATION` is set.
+
 ## After questions are published, before 2 November: the PDF cross-check
 
 `vic:audit` proves the recorded votes match the printed totals and that every voter held a seat that day. It can't see a parsing error that keeps the counts right, such as the Aye and No lists swapped. To close that gap:
@@ -107,5 +123,5 @@ Time-box it to one session.
 - **Final review:** made by AI reviewers, not humans (owner decision, 30 Sep 2026). The site says so; never claim human reviewers.
 - **Contact email:** Namecheap Private Email over SMTP, not Resend (avoids a paid plan).
 - **Policy text:** changed only in the workbook. Once reviewers edit it directly, don't re-run the scripts used to build it.
-- **Analytics and cookies:** none. The only cookie is Cloudflare's `__cf_bm`, which the privacy page discloses.
+- **Analytics and cookies:** anonymous visit counts through PostHog (US cloud), sent via our own `/ingest` route so the browser only talks to this site. Counts carry no answers, party results, districts, names or URL fragments (enforced in `resources/js/analytics.js`, with tests). No cookies: a random per-tab code lives in `sessionStorage`. Set `POSTHOG_KEY` on Cloud, and in the PostHog project turn on "Discard client IP data" and turn off autocapture and session replay. The only cookie is still Cloudflare's `__cf_bm`. The privacy page discloses all of this.
 - **Alerting:** Cloud's logs only. That is another reason to freeze the data after the final sync.

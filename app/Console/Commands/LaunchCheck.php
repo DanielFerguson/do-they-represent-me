@@ -39,6 +39,11 @@ class LaunchCheck extends Command
             $checks['The scheduled sync is frozen'] = config('services.parliament_vic.sync_frozen') ? [] : ['set PARLIAMENT_VIC_SYNC_FROZEN=true after the final sync'];
         }
 
+        // Worth knowing, but not a reason to hold a launch.
+        $notices = [
+            'Visit counts are switched on' => filled(config('services.posthog.key')) ? [] : ['POSTHOG_KEY is not set, so no visits are counted'],
+        ];
+
         $failed = 0;
 
         foreach ($checks as $check => $problems) {
@@ -51,6 +56,10 @@ class LaunchCheck extends Command
             $failed++;
             $this->warn("  ✗ {$check}: ".count($problems));
             collect($problems)->take(10)->each(fn (string $problem) => $this->line("      {$problem}"));
+        }
+
+        foreach ($notices as $notice => $problems) {
+            $this->line($problems === [] ? "  ✓ {$notice}" : "  ! {$notice}: ".implode(', ', $problems));
         }
 
         $this->newLine();

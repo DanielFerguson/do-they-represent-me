@@ -111,6 +111,7 @@ it('drops the prototype notice once a policy is published', function (string $ro
     $this->get(route($route))->assertDontSee('Prototype.');
 })->with(['home', 'results']);
 
+// A district page has its own picture, made for that district. See DistrictShareImageTest.
 it('gives each section its own share image', function (Closure $path, string $image) {
     $this->get($path())
         ->assertOk()
@@ -122,7 +123,6 @@ it('gives each section its own share image', function (Closure $path, string $im
     'questions' => [fn () => route('policies.index'), 'share-questions.png'],
     'a question' => [fn () => route('policies.show', Policy::factory()->published()->create()->slug), 'share-questions.png'],
     'districts' => [fn () => route('districts.index'), 'share-district.png'],
-    'a district' => [fn () => route('districts.show', Electorate::factory()->create()->slug), 'share-district.png'],
     'methodology' => [fn () => route('methodology'), 'share-methodology.png'],
     'about' => [fn () => route('about'), 'share-methodology.png'],
 ]);

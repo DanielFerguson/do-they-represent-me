@@ -8,6 +8,12 @@ export const MIN_COMPARABLE_ANSWERS = 5;
 
 export const MIN_SHARED_QUESTIONS = 3;
 
+/** The longest name we put in a link or show from one. */
+export const MAX_NAME_LENGTH = 24;
+
+/** The most people one link can compare, counting the friends and not the owner. */
+const MAX_FRIENDS = 8;
+
 export const ANSWERS = {
     a: { label: 'Agree', value: 1 },
     d: { label: 'Disagree', value: 0 },
@@ -20,7 +26,7 @@ export const ANSWERS = {
  */
 export function encodeAnswers(answers) {
     return Object.entries(answers)
-        .filter(([, answer]) => answer in ANSWERS && answer !== 's')
+        .filter(([, answer]) => Object.hasOwn(ANSWERS, answer) && answer !== 's')
         .map(([id, answer]) => `${id}${answer}`)
         .join('.');
 }
@@ -29,7 +35,7 @@ export function decodeAnswers(encoded) {
     const answers = {};
 
     for (const part of (encoded || '').split('.')) {
-        const match = /^(\d+)([adu])$/.exec(part);
+        const match = /^(\d{1,6})([adu])$/.exec(part);
 
         if (match) {
             answers[match[1]] = match[2];
@@ -43,6 +49,63 @@ export function answersFromHash(hash) {
     const params = new URLSearchParams((hash || '').replace(/^#/, ''));
 
     return decodeAnswers(params.get('a'));
+}
+
+/**
+ * A name typed by someone, for putting in a link and showing to someone else:
+ * no control, bidirectional or zero-width characters, single spaces, and short.
+ */
+export function sanitiseName(raw) {
+    const cleaned = String(raw ?? '')
+        .replace(/\s+/gu, ' ')
+        .replace(/[\p{Cc}\p{Cf}]/gu, '')
+        .trim();
+
+    return Array.from(cleaned).slice(0, MAX_NAME_LENGTH).join('').trim();
+}
+
+/**
+ * The friends whose answers a link carries: each `f` is one friend's answers,
+ * and the `n` after it is their name. Friends without valid answers are dropped.
+ */
+export function friendsFromHash(hash) {
+    const friends = [];
+
+    for (const [key, value] of new URLSearchParams((hash || '').replace(/^#/, ''))) {
+        if (key === 'f') {
+            friends.push({ answers: decodeAnswers(value), name: '' });
+        } else if (key === 'n' && friends.length && friends.at(-1).name === '') {
+            friends.at(-1).name = sanitiseName(value);
+        }
+    }
+
+    return friends.filter((friend) => Object.keys(friend.answers).length > 0).slice(0, MAX_FRIENDS);
+}
+
+/** An invitation to compare: the sender's answers, and their name if they gave one. */
+export function inviteHash(answers, name) {
+    return `#${friendParams({ answers, name })}`;
+}
+
+/** The name of the person whose results a link carries: an `n` that comes before any friend. */
+export function ownerNameFromHash(hash) {
+    for (const [key, value] of new URLSearchParams((hash || '').replace(/^#/, ''))) {
+        if (key === 'f') {
+            return '';
+        }
+
+        if (key === 'n') {
+            return sanitiseName(value);
+        }
+    }
+
+    return '';
+}
+
+function friendParams({ answers, name }) {
+    const clean = sanitiseName(name);
+
+    return `f=${encodeAnswers(answers)}${clean ? `&n=${encodeURIComponent(clean)}` : ''}`;
 }
 
 export function saveProgress(key, version, answers, index) {
@@ -192,10 +255,118 @@ export function districtFromHash(hash) {
 /**
  * The part of a results link after the #: answers, and the district if chosen.
  */
-export function resultsHash(answers, district) {
-    return `#a=${encodeAnswers(answers)}${district ? `&d=${district}` : ''}`;
+export function resultsHash(answers, district, friends = []) {
+    return `#a=${encodeAnswers(answers)}${district ? `&d=${district}` : ''}${friends.map((friend) => `&${friendParams(friend)}`).join('')}`;
+}
+
+/**
+ * A link to share your own results: your answers, your district if chosen, and
+ * your name if you gave one. No friends' answers go in it.
+ */
+export function shareHash(answers, district, name) {
+    const clean = sanitiseName(name);
+
+    return `${resultsHash(answers, district)}${clean ? `&n=${encodeURIComponent(clean)}` : ''}`;
 }
 
 export function comparableAnswerCount(answers) {
     return Object.values(answers).filter((answer) => answer === 'a' || answer === 'd').length;
+}
+
+/**
+ * True when a results link carries someone else's answers: it has answers
+ * after the #, and they differ from the ones saved in this browser. The sender
+ * opening their own link sees the same answers they saved, so it isn't shared.
+ */
+export function isSharedResults(saved, fromLink) {
+    return Object.keys(fromLink).length > 0 && encodeAnswers(saved ?? {}) !== encodeAnswers(fromLink);
+}
+
+const FROM_QUIZ_KEY = 'dtrm-from-quiz';
+
+/**
+ * Finishing the quiz leaves a one-off marker for the results page, so it can
+ * tell someone who has just finished from someone coming back to their results.
+ */
+export function markArrivedFromQuiz() {
+    try {
+        sessionStorage.setItem(FROM_QUIZ_KEY, '1');
+    } catch {
+        // Storage can be unavailable; the visit is then counted as a revisit.
+    }
+}
+
+export function consumeArrivedFromQuiz() {
+    try {
+        const arrived = sessionStorage.getItem(FROM_QUIZ_KEY) === '1';
+        sessionStorage.removeItem(FROM_QUIZ_KEY);
+
+        return arrived;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * How two people's answers compare, question by question, in the order of the
+ * questions. Only agree and disagree count as answers. Answers to questions
+ * that aren't in the data are ignored, so a forged link can't add any.
+ */
+export function compareAnswers(mine, theirs, policies) {
+    const result = { same: [], different: [], onlyMine: [], onlyTheirs: [] };
+    const answered = (answer) => answer === 'a' || answer === 'd';
+
+    for (const policy of policies) {
+        const a = mine[policy.id];
+        const b = theirs[policy.id];
+
+        if (answered(a) && answered(b)) {
+            (a === b ? result.same : result.different).push(policy);
+        } else if (answered(a)) {
+            result.onlyMine.push(policy);
+        } else if (answered(b)) {
+            result.onlyTheirs.push(policy);
+        }
+    }
+
+    const shared = result.same.length + result.different.length;
+
+    return {
+        ...result,
+        shared,
+        percent: shared >= MIN_SHARED_QUESTIONS ? Math.round((result.same.length / shared) * 100) : null,
+    };
+}
+
+const INVITE_KEY = 'dtrm-invite';
+
+/**
+ * An invitation to compare, kept for the rest of this tab only. It holds
+ * another person's answers, so it never goes in localStorage.
+ */
+export function saveInvite(friend) {
+    try {
+        sessionStorage.setItem(INVITE_KEY, JSON.stringify({ answers: friend.answers, name: friend.name }));
+    } catch {
+        // Storage can be unavailable; the invitation then lives only in the link.
+    }
+}
+
+export function loadInvite() {
+    try {
+        const saved = JSON.parse(sessionStorage.getItem(INVITE_KEY) || 'null');
+        const answers = decodeAnswers(encodeAnswers(saved?.answers ?? {}));
+
+        return Object.keys(answers).length ? { answers, name: sanitiseName(saved.name) } : null;
+    } catch {
+        return null;
+    }
+}
+
+export function clearInvite() {
+    try {
+        sessionStorage.removeItem(INVITE_KEY);
+    } catch {
+        // Nothing to clear.
+    }
 }

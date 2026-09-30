@@ -35,6 +35,19 @@ return [
         ],
     ],
 
+    // Anonymous visit counts. The public project key is safe to expose to the
+    // browser, but keep it in the environment, like the rest of the site's
+    // settings. Events go through our own /ingest route, which forwards them
+    // to `host`. Leave the key empty to turn analytics off.
+    'posthog' => [
+        'key' => env('POSTHOG_KEY'),
+        'host' => env('POSTHOG_HOST', 'https://us.i.posthog.com'),
+
+        // A cap on /ingest across all visitors, not per visitor: the route
+        // can't tell visitors apart without storing something about them.
+        'ingest_per_minute' => 1200,
+    ],
+
     'parliament_vic' => [
         'base_url' => 'https://www.parliament.vic.gov.au',
         'allowed_hosts' => ['www.parliament.vic.gov.au', 'parliament.vic.gov.au'],

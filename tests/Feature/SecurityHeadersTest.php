@@ -1,8 +1,10 @@
 <?php
 
+use App\Domain\Districts\DistrictShareImage;
 use App\Domain\Localities\LocalityDirectory;
 use App\Filament\AvatarProviders\InitialsAvatarProvider;
 use App\Http\Middleware\SecurityHeaders;
+use App\Models\Electorate;
 use App\Models\User;
 use App\Providers\AppServiceProvider;
 use Illuminate\Support\Facades\URL;
@@ -15,6 +17,13 @@ it('sends the strict public Content-Security-Policy, with no nonce, on every pub
     'a page' => fn () => route('home'),
     'a page that does not exist' => fn () => '/no-such-page',
     'a data file' => fn () => app(LocalityDirectory::class)->url(),
+    'a district picture' => function () {
+        $district = Electorate::factory()->create();
+        $images = app(DistrictShareImage::class);
+
+        return $images->url($district, $images->cardFor($district));
+    },
+    'an analytics event' => fn () => route('ingest', 'e'),
     'an expired preview link' => fn () => URL::temporarySignedRoute('preview.quiz', now()->subMinute(), absolute: false),
 ]);
 

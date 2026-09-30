@@ -3,7 +3,7 @@
     $chevron = '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" class="shrink-0 text-ink-muted"><path d="M5 2.5L9.5 7L5 11.5" fill="none" stroke="currentColor" stroke-width="1.5" /></svg>';
 @endphp
 
-<x-layouts.public share-image="images/share-questions.png" title="Questions">
+<x-layouts.public page-type="policies_index" share-image="images/share-questions.png" title="Questions">
     <div class="mx-auto flex max-w-page flex-col gap-6 px-5 pb-12 pt-5 lg:flex-row lg:items-start lg:gap-24 lg:pb-24 lg:pt-18">
         <div class="flex min-w-0 flex-col gap-6 lg:w-[704px] lg:shrink-0 lg:gap-12">
             <header class="flex flex-col gap-2.5 lg:gap-4">

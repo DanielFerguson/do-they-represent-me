@@ -45,6 +45,10 @@ class AppServiceProvider extends ServiceProvider
         // Enough for a real person to follow up, few enough to blunt spam.
         RateLimiter::for('contact', fn (Request $request): Limit => Limit::perHour(5)->by($request->ip()));
 
+        // A cap on analytics events across all visitors. See the posthog block
+        // in config/services.php.
+        RateLimiter::for('ingest', fn (): Limit => Limit::perMinute((int) config('services.posthog.ingest_per_minute'))->by('ingest'));
+
         // The footer's "records up to" date. It is a closure so the error
         // pages, which must render while the database is down, never call it.
         View::composer('components.layouts.public', function (\Illuminate\Contracts\View\View $view): void {

@@ -1,4 +1,4 @@
-<x-layouts.public :title="$isPreview ? 'Quiz' : null" :noindex="$isPreview">
+<x-layouts.public :page-type="$isPreview ? null : 'home'" :title="$isPreview ? 'Quiz' : null" :noindex="$isPreview">
     <div
         x-data="quiz"
         data-stances-url="{{ $stancesUrl }}"
@@ -16,6 +16,17 @@
 
         <div class="flex flex-col gap-24 lg:flex-row lg:items-start">
             <div class="flex min-w-0 flex-col gap-10 lg:w-[704px] lg:shrink-0">
+                <div x-show="hasInvite" x-cloak role="note" class="flex items-start justify-between gap-4 rounded-md bg-surface px-4 py-4 lg:px-6 lg:py-5">
+                    <div class="flex flex-col gap-1">
+                        <p class="eyebrow" x-text="inviteEyebrow"></p>
+                        <p class="text-[17px] font-semibold leading-[25px] tracking-[-0.01em] lg:text-h2 lg:leading-[26px]" x-text="inviteHeading"></p>
+                        <p class="text-small leading-[21px] text-ink-muted">Take the quiz, then see where you agree and where you don't. Your answers stay in your browser.</p>
+                    </div>
+                    <button type="button" x-on:click="dismissInvite" aria-label="Dismiss the invitation" class="flex size-9 shrink-0 items-center justify-center rounded-md border border-rule-strong hover:border-ink">
+                        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" fill="none" stroke="currentColor" stroke-width="1.5" /></svg>
+                    </button>
+                </div>
+
                 {{-- The intro shrinks to a title line once any answer is saved, so returning visitors start on their question. --}}
                 <div class="flex items-baseline justify-between gap-4">
                     <div class="flex flex-col gap-3.5 lg:gap-5">
@@ -116,7 +127,7 @@
                 </div>
                 <div x-show="!hasStarted" class="flex flex-col gap-2 rounded-md bg-surface p-5 text-small leading-[21px]">
                     <p class="font-semibold">Your answers stay in your browser</p>
-                    <p class="text-ink-muted">They're never sent to us. No accounts, no tracking. About 5 minutes.</p>
+                    <p class="text-ink-muted">They're never sent to us. No accounts, no ads. About 5 minutes.</p>
                 </div>
 
                 <div x-show="hasStarted" x-cloak class="flex flex-col">

@@ -5,7 +5,7 @@
     $reportUrl = route('contact', ['topic' => 'correction', 'district' => $district->slug]);
 @endphp
 
-<x-layouts.public share-image="images/share-district.png" :title="$district->name.' District'" :description="'The MLA and MLCs for '.$district->name.' District, and how they voted in the Parliament of Victoria.'">
+<x-layouts.public page-type="district" :share-image="$shareImageUrl" :share-image-alt="$shareImageAlt" :title="$district->name.' District'" :description="'The MLA and MLCs for '.$district->name.' District, and how they voted in the Parliament of Victoria.'">
     <div class="mx-auto flex max-w-page flex-col gap-6 px-5 pb-12 pt-5 lg:flex-row lg:items-start lg:gap-24 lg:pb-24 lg:pt-18">
         <div class="flex min-w-0 flex-col gap-6 lg:w-[704px] lg:shrink-0 lg:gap-12">
             <header class="flex flex-col gap-2.5 lg:gap-4">
@@ -23,11 +23,12 @@
                     data-district="{{ $district->slug }}"
                     class="flex flex-col gap-2 pt-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3"
                 >
-                    <a href="{{ route('home') }}" class="flex h-12 items-center justify-center rounded-md bg-ink px-5 text-[15px] font-medium text-ground hover:opacity-85">Take the quiz</a>
+                    <a href="{{ route('home') }}" x-on:click="takeQuiz" class="flex h-12 items-center justify-center rounded-md bg-ink px-5 text-[15px] font-medium text-ground hover:opacity-85">Take the quiz</a>
                     <button type="button" x-cloak x-on:click="choose" x-bind:aria-pressed="isMine" class="group flex h-12 items-center justify-center gap-2 rounded-md border border-rule-strong px-5 text-[15px] font-medium hover:border-ink aria-pressed:border-ink">
                         <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" class="hidden shrink-0 group-aria-pressed:block"><path d="M2.5 7.5L5.5 10.5L11.5 3.5" fill="none" stroke="currentColor" stroke-width="1.75" /></svg>
                         Use this as my district
                     </button>
+                    <x-district-share :name="$district->name" :url="route('districts.show', $district->slug)" :image="$shareImageUrl" :alt="$shareImageAlt" />
                     <p role="status" class="text-[13px] leading-[19px] text-ink-muted lg:text-small" x-text="status"></p>
                 </div>
             </header>

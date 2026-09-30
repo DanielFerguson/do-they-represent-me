@@ -32,6 +32,7 @@ Set `ADMIN_EMAILS` in `.env` to allow a curator into `/admin`, then create the a
 
 ```bash
 php artisan test --compact
+pnpm run test:js
 vendor/bin/pint --test
 vendor/bin/phpstan analyse
 composer audit && pnpm audit --prod
