@@ -47,12 +47,12 @@ Time-box it to one session.
 
 ## M5 build list (from 2 November)
 
-1. **`vic:launch-check`**, a go/no-go command (`app/Console/Commands/LaunchCheck.php`), with `--launch` for the final checks. It exits non-zero on any failure.
+1. **Built 30 Sep 2026.** **`vic:launch-check`**, a go/no-go command (`app/Console/Commands/LaunchCheck.php`), with `--launch` for the final checks. It exits non-zero on any failure.
    - Checks: at least 15 published questions; `vic:audit` passes; the live snapshot isn't stale (add `StanceSnapshots::isStale()`, comparing `current()->hash` with a fresh hash of `StanceSnapshotBuilder::build()`); `SITE_CONTACT_EMAIL` and `SITE_AUTHORISATION` are set; `APP_URL` is https and production has `APP_DEBUG=false`; every district has localities.
-   - Added by `--launch`: the 2026 election has candidates in all 88 districts and 8 regions and `candidates_as_of` is set; the data is frozen.
+   - Added by `--launch`: the next election has candidates in every district and region, and the data is frozen. (Add the `candidates_as_of` check with item 3.)
    - Print the facts to record: published count, snapshot hash, workbook hash (the latest `PolicyImport`), divisions, votes, documents, latest sitting date and candidate count.
    - A Pest test with a passing case and one failing case per check, like `AuditDivisionsTest`.
-2. **Data freeze.** `services.parliament_vic.sync_frozen` (from `PARLIAMENT_VIC_SYNC_FROZEN`, default false) in `config/services.php`. The daily sync in `routes/console.php` gets `->skip(fn () => config('services.parliament_vic.sync_frozen'))`. The audit keeps running and manual commands are unaffected. This stops published results changing mid-campaign, and matters because Cloud's logs keep only one day, so a failing audit would otherwise go unseen.
+2. **Built 30 Sep 2026.** **Data freeze.** `services.parliament_vic.sync_frozen` (from `PARLIAMENT_VIC_SYNC_FROZEN`, default false) in `config/services.php`. The daily sync in `routes/console.php` gets `->skip(fn () => config('services.parliament_vic.sync_frozen'))`. The audit keeps running and manual commands are unaffected. This stops published results changing mid-campaign, and matters because Cloud's logs keep only one day, so a failing audit would otherwise go unseen.
 3. **Candidate pipeline.**
    - A migration for a nullable `elections.candidates_as_of` date.
    - `vic:import-candidates` gets `--as-of=YYYY-MM-DD` (required for a real import, and stored) and `--check` (validate and report, change nothing).

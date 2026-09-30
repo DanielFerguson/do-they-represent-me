@@ -9,11 +9,13 @@ use Illuminate\Support\Facades\Schedule;
 |
 | New Votes and Proceedings / Minutes are published after each sitting
 | day, and proofs are occasionally corrected, so the sync looks back over
-| recent documents daily. Unchanged documents are skipped cheaply.
+| recent documents daily. Unchanged documents are skipped cheaply. It stops
+| once PARLIAMENT_VIC_SYNC_FROZEN is set, after the final sync.
 |
 */
 
 Schedule::command('vic:sync-proceedings --since=-21days')
+    ->skip(fn (): bool => (bool) config('services.parliament_vic.sync_frozen'))
     ->dailyAt('06:00')
     ->timezone('Australia/Melbourne')
     ->withoutOverlapping()

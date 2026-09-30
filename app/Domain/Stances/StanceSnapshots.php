@@ -46,6 +46,19 @@ class StanceSnapshots
     }
 
     /**
+     * True when the published data has changed since the live version was
+     * stored, so the site is showing out-of-date results.
+     */
+    public function isStale(): bool
+    {
+        if (! Policy::query()->published()->exists()) {
+            return false;
+        }
+
+        return $this->current()?->hash !== $this->encode($this->builder->build())[0];
+    }
+
+    /**
      * The current data including policies still in review, for reviewers'
      * preview links. Built on request and never stored.
      *

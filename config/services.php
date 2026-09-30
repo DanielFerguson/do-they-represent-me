@@ -41,6 +41,10 @@ return [
         'user_agent' => 'DoTheyRepresentMe/1.0 (+'.env('APP_URL', 'http://localhost').')',
         'max_document_bytes' => 20 * 1024 * 1024,
         'request_delay_ms' => (int) env('PARLIAMENT_VIC_REQUEST_DELAY_MS', 1000),
+
+        // Stops the daily sync after the final pre-election sync, so published
+        // results can't change mid-campaign. Manual commands still work.
+        'sync_frozen' => (bool) env('PARLIAMENT_VIC_SYNC_FROZEN', false),
     ],
 
 ];
