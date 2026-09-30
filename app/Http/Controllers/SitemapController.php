@@ -17,12 +17,12 @@ class SitemapController extends Controller
     {
         $urls = [
             route('home'),
-            route('quiz'),
             route('districts.index'),
             route('policies.index'),
             route('methodology'),
             route('privacy'),
             route('about'),
+            route('contact'),
             ...Electorate::query()->where('kind', ElectorateKind::District)->orderBy('slug')->pluck('slug')->map(fn (string $slug): string => route('districts.show', $slug)),
             ...Policy::query()->published()->orderBy('number')->pluck('slug')->map(fn (string $slug): string => route('policies.show', $slug)),
         ];

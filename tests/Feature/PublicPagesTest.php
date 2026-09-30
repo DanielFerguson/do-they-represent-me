@@ -12,8 +12,8 @@ it('renders the public pages', function (string $route, string $text) {
         ->assertSee($text, escape: false)
         ->assertSee('Your answers stay in your browser');
 })->with([
-    'home' => ['home', 'How do Victoria\'s parties and MPs actually vote?'],
-    'quiz' => ['quiz', 'Loading questions'],
+    'home' => ['home', 'How do Victoria\'s parties actually vote?'],
+    'the quiz on the home page' => ['home', 'Loading questions'],
     'results' => ['results', 'Working out your results'],
     'districts' => ['districts.index', 'Find your district'],
     'questions' => ['policies.index', 'The questions'],
@@ -26,7 +26,6 @@ it('sets no cookies on public pages, so they stay private and cacheable', functi
     $this->get($path())->assertOk()->assertHeaderMissing('Set-Cookie');
 })->with([
     'home' => fn () => route('home'),
-    'quiz' => fn () => route('quiz'),
     'results' => fn () => route('results'),
     'districts' => fn () => route('districts.index'),
     'a district' => fn () => route('districts.show', Electorate::factory()->create()->slug),
@@ -38,6 +37,10 @@ it('sets no cookies on public pages, so they stay private and cacheable', functi
     'localities' => fn () => app(LocalityDirectory::class)->url(),
     'preview quiz' => fn () => URL::temporarySignedRoute('preview.quiz', now()->addDay(), absolute: false),
 ]);
+
+it('moves the old quiz address to the home page permanently', function () {
+    $this->get('/quiz')->assertStatus(301)->assertRedirect(route('home'));
+});
 
 it('shows the authorisation statement in the footer only once it is configured', function () {
     $this->get(route('about'))->assertDontSee('Authorised by');
@@ -61,7 +64,7 @@ it('says plainly on the methodology page that the questions were drafted with AI
 
 it('marks the prototype data as sample data', function (string $route) {
     $this->get(route($route))->assertSee('Prototype.');
-})->with(['home', 'quiz', 'results']);
+})->with(['home', 'results']);
 
 it('publishes sample stances with stable policy ids and a stance for every party', function () {
     $data = json_decode(file_get_contents(public_path('stances/sample.json')), true, flags: JSON_THROW_ON_ERROR);
@@ -83,18 +86,18 @@ it('publishes sample stances with stable policy ids and a stance for every party
 
 it('points the quiz and results at the sample data while no policy is published', function (string $route) {
     $this->get(route($route))->assertSee('data-stances-url="'.asset('stances/sample.json').'"', escape: false);
-})->with(['quiz', 'results']);
+})->with(['home', 'results']);
 
 it('points the quiz and results at the published data once a policy is published', function (string $route) {
     Policy::factory()->published()->create();
     $snapshot = app(StanceSnapshots::class)->publish();
 
     $this->get(route($route))->assertSee('data-stances-url="'.route('stances.show', $snapshot->hash).'"', escape: false);
-})->with(['quiz', 'results']);
+})->with(['home', 'results']);
 
 it('drops the prototype notice once a policy is published', function (string $route) {
     Policy::factory()->published()->create();
     app(StanceSnapshots::class)->publish();
 
     $this->get(route($route))->assertDontSee('Prototype.');
-})->with(['home', 'quiz', 'results']);
+})->with(['home', 'results']);

@@ -34,7 +34,7 @@ use Illuminate\Support\Collection;
  *     regions: list<array{slug: string, name: string}>,
  *     districts: list<array{slug: string, name: string, region: ?string}>,
  *     members: list<array{slug: string, name: string, party: string, house: string, electorate: string}>,
- *     policies: list<array{id: int, slug: string, topic: ?string, title: string, question: string, description: ?string, url: string, stances: array<string, Stance>, members: array<string, Stance>}>,
+ *     policies: list<array{id: int, slug: string, topic: ?string, title: string, question: string, description: ?string, agree_means: ?string, url: string, stances: array<string, Stance>, members: array<string, Stance>}>,
  * }
  */
 class StanceSnapshotBuilder
@@ -92,6 +92,7 @@ class StanceSnapshotBuilder
                 'title' => $policy->title,
                 'question' => $policy->question,
                 'description' => $policy->description,
+                'agree_means' => $policy->agree_means,
                 'url' => $policyUrl($policy),
                 'stances' => $this->stances($policy, $parties, fn (Party $party): string => $party->short_name),
                 'members' => $this->stances($policy, $seats->map->member, fn (Member $member): string => $member->slug),

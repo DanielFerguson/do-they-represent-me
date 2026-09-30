@@ -77,6 +77,61 @@ Alpine.data('quiz', () => ({
         return `Question ${this.index + 1} of ${this.total}`;
     },
 
+    get positionShort() {
+        return `${this.index + 1} of ${this.total}`;
+    },
+
+    /** True once any answer is saved; the intro then shrinks to a title line. */
+    get hasStarted() {
+        return Object.keys(this.answers).length > 0;
+    },
+
+    get showsQuestionCount() {
+        return !this.hasStarted && this.total > 0;
+    },
+
+    get titleClass() {
+        return this.hasStarted ? 'text-[15px]! leading-[18px]! tracking-normal!' : '';
+    },
+
+    get answeredCount() {
+        return Object.keys(this.answers).length;
+    },
+
+    /** The desktop rail lists the questions around the current one, and says how many more follow. */
+    get railLength() {
+        return Math.min(this.total, Math.max(6, this.index + 3));
+    },
+
+    get railItems() {
+        if (!this.data) {
+            return [];
+        }
+
+        return this.data.policies.slice(0, this.railLength).map((policy, index) => {
+            const answer = this.answers[policy.id];
+
+            return {
+                id: policy.id,
+                index,
+                number: index + 1,
+                title: policy.title,
+                answer: answer ? ANSWERS[answer].label : '',
+                current: index === this.index ? 'step' : null,
+                titleClass: answer || index === this.index ? 'text-ink' : 'text-ink-muted',
+                answerClass: answer === 's' || answer === 'u' ? 'font-normal text-ink-muted' : 'text-ink',
+            };
+        });
+    },
+
+    get hasMoreInRail() {
+        return this.total > this.railLength;
+    },
+
+    get railMoreLabel() {
+        return `+ ${this.total - this.railLength} more`;
+    },
+
     get progress() {
         return { width: `${this.total ? (this.index / this.total) * 100 : 0}%` };
     },
@@ -99,12 +154,6 @@ Alpine.data('quiz', () => ({
 
     isSelected(answer) {
         return this.current !== null && this.answers[this.current.id] === answer;
-    },
-
-    answerClass(answer) {
-        return this.isSelected(answer)
-            ? 'border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900'
-            : 'border-zinc-300 hover:border-zinc-500 dark:border-zinc-700 dark:hover:border-zinc-400';
     },
 
     choose(answer) {
@@ -133,6 +182,12 @@ Alpine.data('quiz', () => ({
 
     skip() {
         this.choose('s');
+    },
+
+    goTo(index) {
+        this.index = index;
+        this.save();
+        this.announce();
     },
 
     back() {
@@ -526,6 +581,29 @@ Alpine.data('myDistrict', () => ({
     choose() {
         saveDistrict(this.slug);
         this.mine = this.slug;
+    },
+}));
+
+/**
+ * The small-screen menu. Escape closes it and returns focus to the button,
+ * so keyboard users are never left inside a hidden panel.
+ */
+Alpine.data('menu', () => ({
+    open: false,
+
+    get buttonLabel() {
+        return this.open ? 'Close' : 'Menu';
+    },
+
+    toggle() {
+        this.open = !this.open;
+    },
+
+    close() {
+        if (this.open) {
+            this.open = false;
+            this.$refs.button.focus();
+        }
     },
 }));
 

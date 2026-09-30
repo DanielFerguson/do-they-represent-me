@@ -51,7 +51,7 @@ it('builds links from APP_URL in production, whatever Host header a request send
     (new AppServiceProvider(app()))->boot();
 
     $this->get('http://attacker.example/about')
-        ->assertSee('href="https://dotheyrepresentme.com/quiz"', escape: false)
+        ->assertSee('href="https://dotheyrepresentme.com/districts"', escape: false)
         ->assertSee('<link rel="canonical" href="https://dotheyrepresentme.com/about">', escape: false)
         ->assertDontSee('attacker.example');
 });

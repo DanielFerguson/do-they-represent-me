@@ -27,7 +27,7 @@ it('includes only published policies, in number order, with their public fields'
     $policies = buildStances()['policies'];
 
     expect(array_column($policies, 'id'))->toBe([3, 12])
-        ->and(array_keys($policies[0]))->toBe(['id', 'slug', 'topic', 'title', 'question', 'description', 'url', 'stances', 'members'])
+        ->and(array_keys($policies[0]))->toBe(['id', 'slug', 'topic', 'title', 'question', 'description', 'agree_means', 'url', 'stances', 'members'])
         ->and($policies[0]['url'])->toBe("/policies/{$first->slug}")
         ->and($policies[0]['description'])->toBe('What the bill did.')
         ->and($policies[1]['question'])->toBe($second->question)

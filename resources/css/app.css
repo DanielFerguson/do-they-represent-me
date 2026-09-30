@@ -3,13 +3,97 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+/* Party swatches are named from data (the party's short name), so the classes never appear literally in a template. */
+@source inline('bg-party-{ajp,alp,dlp,ffv,grn,ind,lbt,lcv,lib,nat,onp,sff}');
+
+/*
+ * The "Gazette" design tokens, from the Paper file "Do They Represent Me? — Victoria 2026".
+ * Everything is drawn in ink on white. Party colours appear only as small swatches and the
+ * all-party stripe, never to rank or favour a party.
+ */
 @theme {
     --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+    --color-ground: #ffffff;
+    --color-surface: #f5f5f5;
+    --color-rule: #e5e5e5;
+    --color-rule-strong: #cfcfcf;
+    --color-ink-muted: #525252;
+    --color-ink: #111111;
+
+    --color-party: #737373;
+    --color-party-ajp: #8c2c8c;
+    --color-party-alp: #de3533;
+    --color-party-dlp: #7e1e2b;
+    --color-party-ffv: #1b9aaa;
+    --color-party-grn: #10c25b;
+    --color-party-ind: #6b7280;
+    --color-party-lbt: #e0b000;
+    --color-party-lcv: #2f7d32;
+    --color-party-lib: #1c4f9c;
+    --color-party-nat: #006644;
+    --color-party-onp: #f36c21;
+    --color-party-sff: #7a5c3e;
+
+    --text-label: 12px;
+    --text-label--line-height: 16px;
+    --text-small: 14px;
+    --text-small--line-height: 20px;
+    --text-body: 17px;
+    --text-body--line-height: 28px;
+    --text-h2: 20px;
+    --text-h2--line-height: 26px;
+    --text-h1-mobile: 28px;
+    --text-h1-mobile--line-height: 34px;
+    --text-h1: 40px;
+    --text-h1--line-height: 46px;
+    --text-display: 52px;
+    --text-display--line-height: 56px;
+
+    --tracking-tight: -0.02em;
+    --tracking-display: -0.025em;
+    --tracking-label: 0.06em;
+
+    --container-reading: 640px;
+    --container-page: 1120px;
+}
+
+/* Dark mode redefines the same tokens, so views never need dark: variants. */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color-ground: #0a0a0a;
+        --color-surface: #171717;
+        --color-rule: #262626;
+        --color-rule-strong: #404040;
+        --color-ink-muted: #a3a3a3;
+        --color-ink: #f5f5f5;
+        --color-party: #a3a3a3;
+    }
+}
+
+@utility eyebrow {
+    font-size: var(--text-label);
+    line-height: var(--text-label--line-height);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+}
+
+@utility link {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-decoration-color: var(--color-rule-strong);
+    text-underline-offset: 4px;
+
+    &:hover {
+        text-decoration-color: currentColor;
+    }
 }
 
 @layer base {
     html {
-        @apply bg-white text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100;
+        @apply bg-ground text-ink antialiased;
     }
 
     [x-cloak] {
@@ -18,13 +102,7 @@
 
     /* A visible focus outline on everything focusable, in both colour schemes. Outlines, unlike rings, survive Windows High Contrast mode. */
     :where(a, button, summary, select, input, textarea, [tabindex]):focus-visible {
-        outline: 2px solid var(--color-zinc-900);
+        outline: 2px solid var(--color-ink);
         outline-offset: 2px;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        :where(a, button, summary, select, input, textarea, [tabindex]):focus-visible {
-            outline-color: var(--color-zinc-100);
-        }
     }
 }

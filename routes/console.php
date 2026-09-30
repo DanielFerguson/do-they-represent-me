@@ -24,3 +24,19 @@ Schedule::command('vic:audit')
     ->timezone('Australia/Melbourne')
     ->withoutOverlapping()
     ->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| Contact messages
+|--------------------------------------------------------------------------
+|
+| The privacy page promises that contact messages are deleted after 12
+| months. model:prune deletes every prunable model's expired records.
+|
+*/
+
+Schedule::command('model:prune')
+    ->dailyAt('07:00')
+    ->timezone('Australia/Melbourne')
+    ->withoutOverlapping()
+    ->onOneServer();

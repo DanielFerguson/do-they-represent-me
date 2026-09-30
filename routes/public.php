@@ -17,8 +17,7 @@ use Illuminate\Support\Facades\Route;
  */
 
 Route::middleware(CachePublicPage::class)->group(function () {
-    Route::get('/', [QuizPagesController::class, 'home'])->name('home');
-    Route::get('/quiz', [QuizPagesController::class, 'quiz'])->name('quiz');
+    Route::get('/', [QuizPagesController::class, 'quiz'])->name('home');
     Route::get('/results', [QuizPagesController::class, 'results'])->name('results');
 
     Route::get('/districts', [DistrictController::class, 'index'])->name('districts.index');
@@ -33,6 +32,8 @@ Route::middleware(CachePublicPage::class)->group(function () {
 
     Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 });
+
+Route::permanentRedirect('/quiz', '/');
 
 Route::get('/stances/{hash}.json', StanceController::class)
     ->where('hash', '[0-9a-f]{64}')

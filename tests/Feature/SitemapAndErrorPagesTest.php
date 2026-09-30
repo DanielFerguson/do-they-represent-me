@@ -15,6 +15,7 @@ it('lists the fixed pages, every district and only the published questions in th
         ->assertOk()
         ->assertHeader('Content-Type', 'application/xml')
         ->assertSee('<loc>'.route('methodology').'</loc>', escape: false)
+        ->assertDontSee('/quiz</loc>', escape: false)
         ->assertSee('<loc>'.route('districts.show', $district->slug).'</loc>', escape: false)
         ->assertSee('<loc>'.route('policies.show', $published->slug).'</loc>', escape: false)
         ->assertDontSee($review->slug)
