@@ -65,10 +65,10 @@ it('shows the live data version on the methodology page only once a snapshot is 
         ->assertSee(route('stances.show', $snapshot->hash), escape: false);
 });
 
-it('says plainly on the methodology page that the questions were drafted with AI and checked by people', function () {
+it('says plainly on the methodology page that the questions were drafted and given their final review by AI', function () {
     $this->get(route('methodology'))
         ->assertSee('drafted with AI')
-        ->assertSee('checked by human reviewers');
+        ->assertSee('A final round of AI reviewers');
 });
 
 it('marks the prototype data as sample data', function (string $route) {

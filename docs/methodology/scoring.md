@@ -87,6 +87,6 @@ Matching happens in the voter's browser. Answers never leave the device. They ar
 
 On 30 September 2026, scores calculated from the database were checked against the curation workbook's balance figures. The workbook counts a bloc as on the agree side at 60% or more and the disagree side at 40% or less.
 - **Match:** Labor, the Liberals, the Nationals and the Greens were on the same side as in the workbook for every policy with a score.
-- **No score:** two policies had no score. Each rests on a single normal-weight division, so the not-enough rule applies. The human reviewers have been asked whether one division is enough.
+- **No score:** two policies had no score. Each rests on a single normal-weight division, so the not-enough rule applies. In the final review both were dropped, because one normal-weight division is too little record for a figure.
 
 Scores can legitimately differ from the workbook in one respect. The curation data used each member's current or last party, while the app uses the party on the day of the vote. This changes figures for members who changed party, and for the independents they joined.

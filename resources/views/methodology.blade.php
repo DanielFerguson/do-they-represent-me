@@ -58,7 +58,7 @@
                     <x-fact term="Every contested vote">Bills and motions where the main parties split. Procedural business, motions about individual MPs and praise-or-censure motions are excluded.</x-fact>
                     <x-fact term="Scored, then balanced">Rated on public interest, clarity and strength of record. Chosen so each major party is on the “agree” side of 35–65% of questions.</x-fact>
                     <x-fact term="Plainly worded">One idea, 25 words or fewer, no party names, no loaded terms. Each vote's direction confirmed from the source.</x-fact>
-                    <x-fact term="Reviewed from every side">AI reviewers argued from the view of each major party and the crossbench, and a plain-language reader checked the wording. Every question is then checked by human reviewers of different political leanings, who make the final call.</x-fact>
+                    <x-fact term="Reviewed from every side">AI reviewers argued from the view of each major party and the crossbench, and a plain-language reader checked the wording. A final round of AI reviewers made the publication call on 30 September 2026: one for each of Labor, the Coalition, the Greens and the crossbench, a plain-language reader and a fact-checker, who checked every vote's direction against the official record. Where they disagreed, a question with too little voting record was dropped and a factual error was always fixed. Nobody's view of which policies are good was part of it. Anyone can report a problem, and every report is checked against the record.</x-fact>
                 </dl>
                 @if ($publishedPolicies > 0)
                     <x-prose>

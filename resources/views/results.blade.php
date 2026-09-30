@@ -54,6 +54,7 @@
                                     <span x-show="dataAsOf">Voting records up to <span x-text="dataAsOf"></span>.</span>
                                     <span class="hidden lg:inline">Parties are listed by how often they matched you, all drawn the same way.</span>
                                 </p>
+                                <p class="text-[15px] leading-[23px] text-ink lg:text-[16px] lg:leading-[25px]">These results compare your answers with how parties voted in the 60th Parliament (2022–2026), not with their promises for the 2026 election.</p>
                             </div>
 
                             <div class="flex flex-col border-t border-ink">

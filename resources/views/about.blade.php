@@ -51,7 +51,7 @@
                         Built by <a href="https://danferg.com" rel="noopener">Dan Ferguson</a>, a Victorian software developer. It's an independent, self-funded project with no grants, sponsors, donations or affiliates, and it isn't affiliated with any party, candidate, lobby group or the Parliament of Victoria. It doesn't tell you how to vote.
                     </p>
                     <p>
-                        Like anyone, Dan has political views. So he didn't choose or word the questions himself. They were drafted with AI following a written, rule-based process, and challenged by AI reviewers arguing from each side. AI has political leanings too, but its work is far easier to monitor, check and re-run than one person's judgement. Human readers and reviewers of different leanings then check every question. <a href="{{ route('methodology') }}#questions">How the questions were chosen</a>.
+                        Like anyone, Dan has political views. So he didn't choose or word the questions himself. They were drafted with AI following a written, rule-based process, and challenged by AI reviewers arguing from each side. AI has political leanings too, but its work is far easier to monitor, check and re-run than one person's judgement. A final round of AI reviewers, arguing from each side and checking every fact against the official record, decided what was published. Dan stands behind that process, and anyone can report a problem. <a href="{{ route('methodology') }}#questions">How the questions were chosen</a>.
                     </p>
                 </x-prose>
             </x-info-section>

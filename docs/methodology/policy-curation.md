@@ -1,6 +1,6 @@
 # Policy curation
 
-The quiz questions ("policies") and the divisions linked to each one were chosen by a written, rule-based protocol. The project owner stepped back from choosing and wording questions, so that their own views could not shape the results. Neutrality comes from following the protocol and recording every decision, and then from human reviewers of different political leanings. Nobody's judgement about which policies are good is part of it.
+The quiz questions ("policies") and the divisions linked to each one were chosen by a written, rule-based protocol. The project owner stepped back from choosing and wording questions, so that their own views could not shape the results. Neutrality comes from following the protocol, recording every decision, and a final round of reviewers arguing from each side. Nobody's judgement about which policies are good is part of it.
 
 The full brief (`TASK.md`) and the curation report (`REPORT.md`) are kept with the working data in the research archive (see [README](README.md#what-is-recorded-where)).
 
@@ -53,6 +53,13 @@ The protocol has six stages. The workbook was saved after each one.
    - Remaining disagreements are recorded verbatim with their resolution.
    - Reviewers' factual claims were checked against the saved sources before any change was adopted.
 6. **Output.** The results are in the policy workbook and the curation report. Every selected policy starts with the status "Review".
+7. **Final review (30 September 2026).** The owner chose to have AI reviewers make the final publication call instead of human reviewers. Six reviewers worked independently from a review pack of every question, linked vote, source and open question: one each for Labor, the Coalition, the Greens and the crossbench, a plain-language reader, and a fact-checker who checked every linked vote's direction and strong flag against the Minutes and the division data. Their verdicts were combined by fixed rules:
+   - a factual error is always fixed;
+   - a wording fix is applied if it is minimal and doesn't change what the linked votes test;
+   - a question that gives no party a figure is dropped rather than published with notes;
+   - a claim that can't be verified in the saved sources is not added.
+
+   Result: 22 questions Ready, 2 Dropped (P17 and P28, each resting on a single motion), six text fixes, and display notes for the Libertarian Party and David Limbrick on P31. Every decision is in the workbook's Review log (round 5), and the workbook is `policy-workbook-v3.xlsx`.
 
 ## The workbook
 
@@ -95,7 +102,7 @@ Only policies with the status Ready are published. Policies still in Review are 
   - Preview links expire after 14 days.
   - The pages they open are not cached, indexed by search engines, or sent as a referrer to other sites.
 
-## Rules for the human review
+## Rules for later reviews
 
 - Edit only the workbook. Policy text is never changed in the app.
 - Once reviewers have edited the workbook, do not rerun the curation scripts. They rebuild the workbook from scratch and would overwrite those edits.
