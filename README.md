@@ -37,6 +37,10 @@ vendor/bin/phpstan analyse
 composer audit && pnpm audit --prod
 ```
 
+## Launch plan
+
+M0 to M4 are live, with 22 published questions in a soft launch. M5 and M6 (candidates, final QA and the public launch by 17 November) start on 2 November; the checklist, dates and decisions are in [docs/launch-plan.md](docs/launch-plan.md).
+
 ## Data & licensing
 
-Voting records are sourced from Parliament of Victoria Hansard. Every division links back to its source.
+Voting records are sourced from the Parliament of Victoria's Votes and Proceedings (Assembly) and Minutes of the Proceedings (Council). Every division links back to its source document.
