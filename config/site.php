@@ -17,6 +17,19 @@ return [
 
     'authorisation' => env('SITE_AUTHORISATION'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Beta
+    |--------------------------------------------------------------------------
+    |
+    | While true, the quiz and results say the site is in beta and invite
+    | corrections, once real questions are published. Set SITE_BETA=false
+    | on launch day.
+    |
+    */
+
+    'beta' => (bool) env('SITE_BETA', true),
+
     'repository_url' => 'https://github.com/DanielFerguson/do-they-represent-me',
 
     /*

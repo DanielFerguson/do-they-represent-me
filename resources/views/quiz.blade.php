@@ -10,6 +10,8 @@
             <x-preview-notice />
         @elseif ($isSample)
             <x-sample-notice />
+        @elseif (config('site.beta'))
+            <x-beta-notice />
         @endif
 
         <div class="flex flex-col gap-24 lg:flex-row lg:items-start">

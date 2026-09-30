@@ -126,3 +126,25 @@ it('gives each section its own share image', function (Closure $path, string $im
     'methodology' => [fn () => route('methodology'), 'share-methodology.png'],
     'about' => [fn () => route('about'), 'share-methodology.png'],
 ]);
+
+it('shows a beta note instead of the prototype notice once real questions are published', function (string $route) {
+    Policy::factory()->published()->create();
+    app(StanceSnapshots::class)->publish();
+
+    $this->get(route($route))
+        ->assertSee('Beta.')
+        ->assertSee(route('contact', ['topic' => 'correction']), escape: false)
+        ->assertDontSee('Prototype.');
+})->with(['home', 'results']);
+
+it('keeps the prototype notice, not the beta note, while the quiz uses sample questions', function () {
+    $this->get(route('home'))->assertSee('Prototype.')->assertDontSee('Beta.');
+});
+
+it('drops the beta note once the site is switched out of beta', function () {
+    config(['site.beta' => false]);
+    Policy::factory()->published()->create();
+    app(StanceSnapshots::class)->publish();
+
+    $this->get(route('home'))->assertDontSee('Beta.');
+});
