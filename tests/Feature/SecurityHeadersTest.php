@@ -59,7 +59,7 @@ it('builds links from APP_URL in production, whatever Host header a request send
 it('gives each public page a canonical link and share card, but not previews', function () {
     $this->get(route('methodology'))
         ->assertSee('<link rel="canonical" href="'.route('methodology').'">', escape: false)
-        ->assertSee('<meta property="og:image" content="'.asset('images/share.png').'">', escape: false);
+        ->assertSee('<meta property="og:image" content="'.asset('images/share-methodology.png').'">', escape: false);
 
     $this->get(URL::temporarySignedRoute('preview.quiz', now()->addDay(), absolute: false))
         ->assertDontSee('rel="canonical"', escape: false);

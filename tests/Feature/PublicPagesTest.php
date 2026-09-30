@@ -110,3 +110,19 @@ it('drops the prototype notice once a policy is published', function (string $ro
 
     $this->get(route($route))->assertDontSee('Prototype.');
 })->with(['home', 'results']);
+
+it('gives each section its own share image', function (Closure $path, string $image) {
+    $this->get($path())
+        ->assertOk()
+        ->assertSee('<meta property="og:image" content="'.asset("images/{$image}").'">', escape: false);
+
+    expect(public_path("images/{$image}"))->toBeFile();
+})->with([
+    'home' => [fn () => route('home'), 'share.png'],
+    'questions' => [fn () => route('policies.index'), 'share-questions.png'],
+    'a question' => [fn () => route('policies.show', Policy::factory()->published()->create()->slug), 'share-questions.png'],
+    'districts' => [fn () => route('districts.index'), 'share-district.png'],
+    'a district' => [fn () => route('districts.show', Electorate::factory()->create()->slug), 'share-district.png'],
+    'methodology' => [fn () => route('methodology'), 'share-methodology.png'],
+    'about' => [fn () => route('about'), 'share-methodology.png'],
+]);

@@ -4,6 +4,7 @@
     'canonical' => true,
     'description' => 'See how Victorian parties and MPs actually voted in State Parliament, and compare their record with your own views.',
     'showRecordsDate' => true,
+    'shareImage' => 'images/share.png',
 ])
 
 @php
@@ -46,7 +47,7 @@
         <meta property="og:title" content="{{ $title ?? 'Do They Represent Me?' }}">
         <meta property="og:description" content="{{ $description }}">
         <meta property="og:url" content="{{ url()->current() }}">
-        <meta property="og:image" content="{{ asset('images/share.png') }}">
+        <meta property="og:image" content="{{ asset($shareImage) }}">
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="630">
         <meta property="og:image:alt" content="Do They Represent Me? How Victoria's parties and MPs voted in State Parliament.">

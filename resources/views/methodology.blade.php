@@ -27,7 +27,7 @@
     ]);
 @endphp
 
-<x-layouts.public title="Methodology" description="How Do They Represent Me? turns the Parliament of Victoria's voting records into quiz results.">
+<x-layouts.public share-image="images/share-methodology.png" title="Methodology" description="How Do They Represent Me? turns the Parliament of Victoria's voting records into quiz results.">
     <div class="mx-auto flex max-w-page flex-col px-5 pb-12 pt-8 lg:flex-row lg:items-start lg:gap-24 lg:pb-24 lg:pt-18">
         <div class="flex min-w-0 flex-col gap-6 lg:w-[704px] lg:shrink-0 lg:gap-12">
             <x-page-header eyebrow="Methodology" title="How we got the answers">

@@ -15,7 +15,7 @@
     ];
 @endphp
 
-<x-layouts.public title="About and corrections" description="Who runs Do They Represent Me?, where the data comes from, and how to report a mistake.">
+<x-layouts.public share-image="images/share-methodology.png" title="About and corrections" description="Who runs Do They Represent Me?, where the data comes from, and how to report a mistake.">
     <div class="mx-auto flex max-w-page flex-col px-5 pb-12 pt-8 lg:flex-row lg:items-start lg:gap-24 lg:pb-24 lg:pt-18">
         <div class="flex min-w-0 flex-col gap-6 lg:w-[704px] lg:shrink-0 lg:gap-12">
             <x-page-header eyebrow="About" title="A voting record you can check, not a pitch">
