@@ -67,7 +67,7 @@
                 <dl class="flex flex-col">
                     <x-fact term="What we keep" wide>Your email, your name if you give it, the topic, your message and the page it was about.</x-fact>
                     <x-fact term="Why" wide>Only to reply and to fix mistakes. Never for marketing, never shared or sold.</x-fact>
-                    <x-fact term="Who sees it" wide>Only Dan Ferguson, who runs the site. A copy is emailed to him through Resend, our email service.</x-fact>
+                    <x-fact term="Who sees it" wide>Only Dan Ferguson, who runs the site. A copy is emailed to him through his own email provider, Namecheap Private Email.</x-fact>
                     <x-fact term="How long" wide>Deleted automatically 12 months after you send it, or sooner if you ask.</x-fact>
                 </dl>
             </x-info-section>
