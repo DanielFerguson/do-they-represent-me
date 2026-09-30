@@ -272,6 +272,21 @@ Alpine.data('results', () => ({
         }
     },
 
+    /**
+     * The swatch class for a party code, grey for a party without its own colour.
+     * Colour only ever marks a name; every bar and figure is drawn in the same ink.
+     */
+    swatchFor(code) {
+        const known = ['ajp', 'alp', 'dlp', 'ffv', 'grn', 'ind', 'lbt', 'lcv', 'lib', 'nat', 'onp', 'sff'];
+        const lower = String(code ?? '').toLowerCase();
+
+        return known.includes(lower) ? `bg-party-${lower}` : 'bg-party';
+    },
+
+    questionsText(count) {
+        return `${count} ${count === 1 ? 'question' : 'questions'}`;
+    },
+
     get comparable() {
         return comparableAnswerCount(this.answers);
     },
@@ -280,8 +295,55 @@ Alpine.data('results', () => ({
         return this.comparable >= MIN_COMPARABLE_ANSWERS;
     },
 
+    get showsResults() {
+        return !this.loading && !this.failed && this.enoughAnswers;
+    },
+
+    get showsTooFew() {
+        return !this.loading && !this.failed && !this.enoughAnswers;
+    },
+
     get minimumAnswers() {
         return MIN_COMPARABLE_ANSWERS;
+    },
+
+    get answerSegments() {
+        return Array.from({ length: MIN_COMPARABLE_ANSWERS }, (_, index) => ({
+            key: index,
+            segmentClass: index < this.comparable ? 'bg-ink' : 'bg-rule',
+        }));
+    },
+
+    get neededText() {
+        return `${Math.min(this.comparable, MIN_COMPARABLE_ANSWERS)} of ${MIN_COMPARABLE_ANSWERS} needed`;
+    },
+
+    get dataAsOf() {
+        const asOf = this.data?.data_as_of;
+
+        if (!asOf) {
+            return '';
+        }
+
+        const date = new Date(`${asOf}T00:00:00`);
+
+        return Number.isNaN(date.getTime())
+            ? asOf
+            : date.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
+    },
+
+    get policyCount() {
+        return this.data?.policies.length ?? 0;
+    },
+
+    get unsureCount() {
+        return (this.data?.policies ?? []).filter((policy) => this.answers[policy.id] === 'u').length;
+    },
+
+    get skippedCount() {
+        const answered = (this.data?.policies ?? []).filter((policy) => ['a', 'd', 'u'].includes(this.answers[policy.id])).length;
+
+        return Math.max(0, this.policyCount - answered);
     },
 
     get scored() {
@@ -292,16 +354,38 @@ Alpine.data('results', () => ({
         return this.scored
             .filter((party) => party.shared >= MIN_SHARED_QUESTIONS)
             .sort((a, b) => b.score - a.score)
-            .map((party) => ({
-                ...party,
-                dotStyle: { left: `${party.percent}%` },
-                summary: `${party.percent}% · ${party.shared} questions`,
-                label: `${party.short_name}: ${party.percent}% match across ${party.shared} questions`,
-            }));
+            .map((party) => {
+                const notCounted = Math.max(0, this.comparable - party.shared);
+
+                return {
+                    ...party,
+                    swatchClass: this.swatchFor(party.code),
+                    barStyle: { width: `${party.percent}%` },
+                    percentText: `${party.percent}%`,
+                    sharedText: this.questionsText(party.shared),
+                    notCounted: notCounted > 0,
+                    notCountedCount: String(notCounted),
+                    notCountedNoun: notCounted === 1 ? 'question' : 'questions',
+                    label: `${party.short_name}: ${party.percent}% match across ${this.questionsText(party.shared)}`,
+                };
+            });
     },
 
+    /**
+     * Parties with too few shared votes to compare, alphabetically so the order carries no meaning.
+     */
     get partiesWithoutRecord() {
-        return this.scored.filter((party) => party.shared < MIN_SHARED_QUESTIONS);
+        return this.scored
+            .filter((party) => party.shared < MIN_SHARED_QUESTIONS)
+            .sort((a, b) => a.short_name.localeCompare(b.short_name, 'en-AU'));
+    },
+
+    get hasPartiesWithoutRecord() {
+        return this.partiesWithoutRecord.length > 0;
+    },
+
+    get partiesWithoutRecordText() {
+        return `${this.partiesWithoutRecord.map((party) => party.short_name).join(', ')}.`;
     },
 
     get answeredPolicies() {
@@ -323,13 +407,18 @@ Alpine.data('results', () => ({
                         const agreement = stance?.agreement ?? null;
                         const comparable = answer.value !== null && agreement !== null;
                         const matches = comparable && 1 - Math.abs(answer.value - agreement) >= 0.5;
+                        const notCounted = answer.value !== null && !comparable;
+                        const hasFigureOrNote = agreement !== null || Boolean(stance?.note);
 
                         return {
                             code: party.code,
                             name: party.short_name,
+                            swatchClass: this.swatchFor(party.code),
                             stance: stanceText(stance),
-                            verdict: comparable ? (matches ? 'Matches you' : 'Differs from you') : '',
-                            verdictClass: comparable ? (matches ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-500 dark:text-zinc-400') : '',
+                            stanceClass: hasFigureOrNote ? 'lg:text-ink' : 'lg:text-ink-muted',
+                            isSame: comparable && matches,
+                            isDifferent: comparable && !matches,
+                            isNotCounted: notCounted,
                         };
                     }),
                 };
@@ -344,6 +433,10 @@ Alpine.data('results', () => ({
         return this.data?.districts ?? [];
     },
 
+    isDistrict(slug) {
+        return slug === this.district;
+    },
+
     get representatives() {
         return this.data ? representativesFor(this.data, this.district) : null;
     },
@@ -355,14 +448,17 @@ Alpine.data('results', () => ({
             return [];
         }
 
+        const partyCodes = new Map((this.data.parties ?? []).map((party) => [party.short_name, party.code]));
         const describe = (role) => (member) => ({
             ...member,
             role,
-            summary: member.shared >= MIN_SHARED_QUESTIONS ? `${member.percent}% · ${member.shared} questions` : 'Too few shared votes to compare',
-            dotStyle: { left: `${member.percent ?? 0}%` },
+            swatchClass: this.swatchFor(partyCodes.get(member.party)),
+            percentText: `${member.percent}%`,
+            sharedText: this.questionsText(member.shared),
+            barStyle: { width: `${member.percent ?? 0}%` },
             hasScore: member.shared >= MIN_SHARED_QUESTIONS,
             label: member.shared >= MIN_SHARED_QUESTIONS
-                ? `${member.name}, ${member.party}, ${role}: ${member.percent}% match across ${member.shared} questions`
+                ? `${member.name}, ${member.party}, ${role}: ${member.percent}% match across ${this.questionsText(member.shared)}`
                 : `${member.name}, ${member.party}, ${role}: too few shared votes to compare`,
         });
         const byScore = (a, b) => (b.shared >= MIN_SHARED_QUESTIONS) - (a.shared >= MIN_SHARED_QUESTIONS) || (b.score ?? 0) - (a.score ?? 0);
@@ -480,7 +576,7 @@ Alpine.data('finder', () => ({
     },
 
     optionClass(index) {
-        return index === this.active ? 'bg-zinc-100 outline-2 -outline-offset-2 outline-zinc-900 dark:bg-zinc-800 dark:outline-zinc-100' : '';
+        return index === this.active ? 'bg-surface outline-2 -outline-offset-2 outline-ink' : '';
     },
 
     optionDetail(locality) {
@@ -539,12 +635,42 @@ Alpine.data('finder', () => ({
         }
     },
 
+    /**
+     * The districts a split suburb falls in, largest share first, each with
+     * its share of residents in words ("about 67%").
+     */
     get chosenDistricts() {
-        return this.chosen ? describeDistricts(this.data, this.chosen) : [];
+        if (!this.chosen) {
+            return [];
+        }
+
+        return describeDistricts(this.data, this.chosen).map((district, index) => {
+            const percent = Math.round(district.share * 100);
+
+            return {
+                ...district,
+                isLargest: index === 0,
+                shareText: percent < 1 ? 'less than 1%' : `about ${percent}%`,
+            };
+        });
     },
 
     get chosenName() {
         return this.chosen?.name ?? '';
+    },
+
+    get chosenHeading() {
+        return this.chosen ? `${this.chosen.name} is split between ${this.chosen.districts.length} districts` : '';
+    },
+
+    get chosenSummary() {
+        const [largest] = this.chosenDistricts;
+
+        if (!largest) {
+            return '';
+        }
+
+        return largest.share >= 0.5 ? `Most residents are in ${largest.name}.` : `The largest part is in ${largest.name}.`;
     },
 
     districtLink(slug) {

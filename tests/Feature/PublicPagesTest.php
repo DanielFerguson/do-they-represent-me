@@ -50,11 +50,20 @@ it('shows the authorisation statement in the footer only once it is configured',
     $this->get(route('home'))->assertSee('Authorised by A. Person, 1 Example Street, Melbourne.');
 });
 
-it('gives the contact email on the about and privacy pages once it is configured', function (string $route) {
-    config(['site.contact_email' => 'corrections@example.org']);
-
-    $this->get(route($route))->assertSee('mailto:corrections@example.org', escape: false);
+it('links to the contact form from the about and privacy pages', function (string $route) {
+    $this->get(route($route))->assertSee('href="'.route('contact').'"', escape: false);
 })->with(['about', 'privacy']);
+
+it('shows the live data version on the methodology page only once a snapshot is published', function () {
+    $this->get(route('methodology'))->assertDontSee('Snapshot');
+
+    Policy::factory()->published()->create();
+    $snapshot = app(StanceSnapshots::class)->publish();
+
+    $this->get(route('methodology'))
+        ->assertSee('Snapshot')
+        ->assertSee(route('stances.show', $snapshot->hash), escape: false);
+});
 
 it('says plainly on the methodology page that the questions were drafted with AI and checked by people', function () {
     $this->get(route('methodology'))

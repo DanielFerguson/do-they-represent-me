@@ -1,43 +1,99 @@
+@php
+    $sections = [
+        'short-version' => 'The short version',
+        'answers' => 'Your quiz answers',
+        'cookies' => 'Cookies',
+        'contact' => 'If you contact us',
+        'hosting' => 'Hosting and logs',
+        'requests' => 'Questions and requests',
+    ];
+    $shortVersion = [
+        ['title' => 'No analytics', 'text' => "We don't count, track or profile visitors."],
+        ['title' => 'No tracking cookies', 'text' => 'The only cookies protect the contact form and the site.'],
+        ['title' => 'Answers stay with you', 'text' => 'They never leave your device.'],
+    ];
+@endphp
+
 <x-layouts.public title="Privacy" description="What Do They Represent Me? does and doesn't collect.">
-    <div class="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-10">
-        <header class="flex flex-col gap-3">
-            <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">Privacy</h1>
-            <p class="text-lg text-zinc-600 dark:text-zinc-400">Your answers stay in your browser. We don't track you.</p>
-        </header>
+    <div class="mx-auto flex max-w-page flex-col px-5 pb-12 pt-8 lg:flex-row lg:items-start lg:gap-24 lg:pb-24 lg:pt-18">
+        <div class="flex min-w-0 flex-col gap-6 lg:w-[704px] lg:shrink-0 lg:gap-12">
+            <x-page-header eyebrow="Privacy" title="Your answers are yours">
+                We built this so you can use it without telling us anything. Here's exactly what happens to your information. Last updated 30 September 2026.
+            </x-page-header>
 
-        <x-prose>
-            <h2>Your answers and your district</h2>
-            <ul>
-                <li>Your answers, and the district you choose, are kept only in your browser: in its local storage, so you can pick up where you left off, and in the part of a results link after the <code>#</code>. Browsers never send that part of a link to a website, so your answers never reach us.</li>
-                <li>Your results are calculated in your browser, from a file of voting records that is the same for everyone.</li>
-                <li>The suburb search downloads the whole list of suburbs once and searches it in your browser. What you type is never sent to us.</li>
-                <li>If you share a results link, anyone who opens it can see the answers in it.</li>
-                <li>To remove your saved answers, use "Clear my answers and start again" in the quiz, or clear this site's data in your browser.</li>
-            </ul>
+            <x-on-this-page :sections="$sections" disclosure />
 
-            <h2>No cookies, analytics or tracking</h2>
-            <ul>
-                <li>The public pages set no cookies. The only exception is Cloudflare, which carries the site's traffic for our host, Laravel Cloud. It may set one security cookie, <code>__cf_bm</code>, to tell visitors from automated bots. It lasts 30 minutes, holds nothing about you or your answers, and isn't used for tracking.</li>
-                <li>There are no analytics, advertising or social media scripts, and nothing is loaded from other companies' servers.</li>
-                <li>We don't use your data to profile you, and we have no data to sell or share.</li>
-            </ul>
+            <x-info-section id="short-version" number="01" title="The short version" first>
+                <ul class="flex flex-col gap-2 lg:flex-row lg:gap-3">
+                    @foreach ($shortVersion as $point)
+                        <li class="flex flex-1 items-center gap-3 rounded-md bg-surface px-4 py-3.5 text-small leading-[18px] lg:flex-col lg:items-start lg:gap-1.5 lg:p-4 lg:leading-5">
+                            <svg width="16" height="16" viewBox="0 0 14 14" aria-hidden="true" class="shrink-0 lg:hidden"><path d="M2.5 7.5L5.5 10.5L11.5 3.5" fill="none" stroke="currentColor" stroke-width="1.75" /></svg>
+                            <p>
+                                <span class="lg:block lg:pb-1.5 lg:text-[15px] lg:font-semibold lg:leading-[18px]">{{ $point['title'] }}<span class="lg:hidden">.</span></span>
+                                <span class="lg:block lg:text-ink-muted">{{ $point['text'] }}</span>
+                            </p>
+                        </li>
+                    @endforeach
+                </ul>
+            </x-info-section>
 
-            <h2>Server logs</h2>
-            <p>
-                Like every website, the servers that host this site (Laravel Cloud) keep short-term technical logs of requests, which include your IP address, the page requested and your browser type. These are used only to keep the site running and secure. They never contain your answers.
-            </p>
+            <x-info-section id="answers" number="02" title="Your quiz answers">
+                <x-prose>
+                    <p>
+                        Your answers, and your district if you choose one, are saved in your browser's local storage so you can come back later. Your results are worked out on your device, and the suburb search runs in your browser too, so what you type is never sent to us.
+                    </p>
+                    <p>
+                        If you copy a link to your results, your answers go in the part of the link after the <code>#</code>. Browsers never send that part to a server, so we can't see it even when someone opens the link. Anyone you share it with can see your answers.
+                    </p>
+                    <p class="text-ink-muted">To remove them, choose “Start again” on the quiz, or clear this site's data in your browser.</p>
+                </x-prose>
+            </x-info-section>
 
-            <h2>Administrators</h2>
-            <p>The admin area, used only by the people who maintain the site, uses a cookie to keep them signed in. Visitors never see it.</p>
+            <x-info-section id="cookies" number="03" title="Cookies">
+                <dl class="flex flex-col">
+                    <x-fact term="Every page except Contact" wide>
+                        The public pages set no cookies. The only exception is Cloudflare, which carries the site's traffic for our host, Laravel Cloud. It may set one security cookie, <code>__cf_bm</code>, to tell visitors from automated bots. It lasts 30 minutes, holds nothing about you or your answers, and isn't used for tracking.
+                    </x-fact>
+                    <x-fact term="Contact page" wide>
+                        Two essential cookies, a session cookie and an <code>XSRF-TOKEN</code> security cookie. They stop forged form submissions and keep any error messages while you fix the form. They expire after 2 hours.
+                    </x-fact>
+                    <x-fact term="Admin area" wide>
+                        A sign-in cookie for the person who maintains the site. Visitors never see it.
+                    </x-fact>
+                </dl>
+            </x-info-section>
 
-            <h2>Contact</h2>
-            <p>
-                @if (config('site.contact_email'))
-                    Questions about privacy: <a href="mailto:{{ config('site.contact_email') }}">{{ config('site.contact_email') }}</a>.
-                @else
-                    See the <a href="{{ route('about') }}">about page</a> for how to get in touch.
-                @endif
-            </p>
-        </x-prose>
+            <x-info-section id="contact" number="04" title="If you contact us">
+                <dl class="flex flex-col">
+                    <x-fact term="What we keep" wide>Your email, your name if you give it, the topic, your message and the page it was about.</x-fact>
+                    <x-fact term="Why" wide>Only to reply and to fix mistakes. Never for marketing, never shared or sold.</x-fact>
+                    <x-fact term="Who sees it" wide>Only Dan Ferguson, who runs the site. A copy is emailed to him through Resend, our email service.</x-fact>
+                    <x-fact term="How long" wide>Deleted automatically 12 months after you send it, or sooner if you ask.</x-fact>
+                </dl>
+            </x-info-section>
+
+            <x-info-section id="hosting" number="05" title="Hosting and logs">
+                <x-prose>
+                    <p>
+                        The site is hosted on Laravel Cloud in Sydney. Like any web server, it keeps short-lived technical logs of each request, including your IP address, browser type, country and the page requested, so we can keep the site running and secure. Laravel Cloud deletes these logs after 1 day. We never use them to identify visitors, and they never contain your answers.
+                    </p>
+                    <p class="text-ink-muted">There are no analytics, advertising or social media scripts, and nothing is loaded from other companies' servers.</p>
+                </x-prose>
+            </x-info-section>
+
+            <x-info-section id="requests" number="06" title="Questions and requests">
+                <x-prose>
+                    <p>
+                        Ask to see or delete anything you've sent us, or ask a question about this policy, through the <a href="{{ route('contact') }}">contact page</a>. We'll do our best to respond within 30 days, and handle each request case by case.
+                    </p>
+                </x-prose>
+                <a href="{{ route('contact') }}" class="flex h-12 items-center justify-center rounded-md border border-rule-strong text-[15px] font-medium hover:border-ink lg:hidden">Contact us</a>
+                <a href="{{ route('contact') }}" class="link hidden self-start text-[15px] leading-[18px] lg:inline">Contact us →</a>
+            </x-info-section>
+        </div>
+
+        <aside class="hidden flex-col gap-8 lg:sticky lg:top-8 lg:flex lg:w-80 lg:shrink-0">
+            <x-on-this-page :sections="$sections" />
+        </aside>
     </div>
 </x-layouts.public>

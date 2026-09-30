@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Stances\StanceSnapshots;
 use App\Models\Division;
 use App\Models\Policy;
 use App\Models\Vote;
@@ -13,7 +14,7 @@ use Illuminate\Support\Carbon;
  */
 class InfoPagesController extends Controller
 {
-    public function methodology(): View
+    public function methodology(StanceSnapshots $snapshots): View
     {
         $latest = Division::query()->max('sitting_date');
 
@@ -22,6 +23,7 @@ class InfoPagesController extends Controller
             'votes' => Vote::query()->count(),
             'publishedPolicies' => Policy::query()->published()->count(),
             'dataAsOf' => $latest === null ? null : Carbon::parse((string) $latest),
+            'snapshotHash' => $snapshots->current()?->hash,
         ]);
     }
 

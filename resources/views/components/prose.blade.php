@@ -1,12 +1,14 @@
-{{-- Long-form text: methodology, privacy and about pages. --}}
+@props(['large' => false])
+
+{{-- Running text inside a section of the methodology, about and privacy pages. Large text is the about page's reading size on desktop. --}}
 <div {{ $attributes->class([
-    'flex flex-col gap-4 leading-relaxed text-zinc-700 dark:text-zinc-300',
-    '[&_h2]:mt-6 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-zinc-900 dark:[&_h2]:text-zinc-100',
-    '[&_h3]:mt-2 [&_h3]:font-semibold [&_h3]:text-zinc-900 dark:[&_h3]:text-zinc-100',
-    '[&_a]:underline [&_a]:underline-offset-4',
-    '[&_ul]:flex [&_ul]:list-disc [&_ul]:flex-col [&_ul]:gap-1 [&_ul]:pl-5',
-    '[&_ol]:flex [&_ol]:list-decimal [&_ol]:flex-col [&_ol]:gap-1 [&_ol]:pl-5',
-    '[&_code]:text-sm',
+    'flex flex-col gap-2.5 text-[15px] leading-6 lg:gap-3',
+    'lg:text-base lg:leading-[26px]' => ! $large,
+    'lg:text-body lg:leading-7' => $large,
+    '[&_a]:underline [&_a]:decoration-rule-strong [&_a]:decoration-1 [&_a]:underline-offset-4 [&_a:hover]:decoration-current',
+    '[&_code]:text-[0.9em]',
+    '[&_h3]:mt-2 [&_h3]:font-semibold',
+    '[&_ul]:flex [&_ul]:list-disc [&_ul]:flex-col [&_ul]:gap-1.5 [&_ul]:pl-5',
 ]) }}>
     {{ $slot }}
 </div>

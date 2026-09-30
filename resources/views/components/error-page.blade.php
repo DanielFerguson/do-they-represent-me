@@ -2,15 +2,19 @@
 
 {{-- Error pages use the public layout, which the site's Content-Security-Policy allows. They never touch the database, so they still render when it is down. --}}
 <x-layouts.public :title="$title" :canonical="false" :show-records-date="false">
-    <div class="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-16">
-        <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">{{ $heading }}</h1>
-        <div class="flex flex-col gap-3 text-zinc-700 dark:text-zinc-300">
-            {{ $slot }}
+    <div class="mx-auto max-w-page px-5 pb-12 pt-8 lg:pb-24 lg:pt-18">
+        <div class="flex max-w-reading flex-col gap-6 lg:gap-8">
+            <div class="flex flex-col gap-2.5 lg:gap-4">
+                <h1 class="text-h1-mobile font-semibold tracking-display lg:text-h1">{{ $heading }}</h1>
+                <div class="flex flex-col gap-3 text-[15px] leading-[23px] text-ink-muted lg:text-body">
+                    {{ $slot }}
+                </div>
+            </div>
+            <ul class="flex flex-wrap gap-x-6 gap-y-3 border-t border-ink pt-5 text-small">
+                <li><a href="{{ route('home') }}" class="link">Take the quiz</a></li>
+                <li><a href="{{ route('districts.index') }}" class="link">Find your district</a></li>
+                <li><a href="{{ route('policies.index') }}" class="link">The questions</a></li>
+            </ul>
         </div>
-        <p class="flex flex-wrap gap-x-4 gap-y-1">
-            <a href="{{ route('home') }}" class="underline underline-offset-4">Home</a>
-            <a href="{{ route('districts.index') }}" class="underline underline-offset-4">Find your district</a>
-            <a href="{{ route('policies.index') }}" class="underline underline-offset-4">The questions</a>
-        </p>
     </div>
 </x-layouts.public>

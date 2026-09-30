@@ -19,6 +19,7 @@ class PolicyController extends Controller
     {
         $topics = Policy::query()
             ->published()
+            ->with(['divisions' => fn ($query) => $query->select('divisions.id', 'divisions.house_id'), 'divisions.house'])
             ->orderBy('number')
             ->get()
             ->groupBy(fn (Policy $policy): string => $policy->topic ?? 'Other')

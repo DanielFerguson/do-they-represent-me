@@ -55,9 +55,9 @@ it('shows the district’s MLA and its region’s MLCs, but not former members',
     $this->get(route('districts.show', $district->slug))
         ->assertOk()
         ->assertSee('Brunswick District')
-        ->assertSeeInOrder(['Member of the Legislative Assembly', 'Jo Member', 'Labor'])
-        ->assertSeeInOrder(['Members of the Legislative Council for Northern Metropolitan Region', 'Sam Upper', 'Greens'])
-        ->assertDontSee('Alex Former');
+        ->assertSeeInOrder(['Legislative Assembly', 'Jo Member', 'Labor', 'Legislative Council', 'Sam Upper', 'Greens'])
+        ->assertDontSee('Alex Former')
+        ->assertSee(e(route('contact', ['topic' => 'correction', 'district' => $district->slug])), escape: false);
 });
 
 it('says a seat is vacant and names the last member', function () {
@@ -106,7 +106,7 @@ it('lists the suburbs in the district, marking those split with another district
     $coburg->electorates()->attach($other, ['share' => 0.78]);
 
     $this->get(route('districts.show', $district->slug))
-        ->assertSeeInOrder(['Suburbs and localities', 'Brunswick East,', 'Coburg (part)']);
+        ->assertSeeInOrder(['Suburbs in this district', 'Brunswick East,', 'Coburg (part)']);
 });
 
 it('lists candidates in ballot order for the upcoming election only', function () {
@@ -127,9 +127,17 @@ it('lists candidates in ballot order for the upcoming election only', function (
         ->assertDontSee('OLDCANDIDATE');
 });
 
-it('shows no candidates section before the ballot draw', function () {
+it('says the candidates are not published yet before the ballot draw', function () {
     ['district' => $district] = districtInRegion();
     Election::factory()->create();
+
+    $this->get(route('districts.show', $district->slug))
+        ->assertSee('Not published yet')
+        ->assertDontSee('In ballot paper order, as published');
+});
+
+it('shows no candidates section when no election is coming up', function () {
+    ['district' => $district] = districtInRegion();
 
     $this->get(route('districts.show', $district->slug))->assertDontSee('Candidates at the');
 });

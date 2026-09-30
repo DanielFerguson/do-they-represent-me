@@ -84,6 +84,7 @@ it('shows the evidence behind a question: the text, each linked vote and how eve
         ->assertSeeInOrder(['Labor', '2', '0', '1', 'Aye'])
         ->assertSee('Pat Independent (No)')
         ->assertSee('href="https://www.parliament.vic.gov.au/globalassets/2024vp090.pdf"', escape: false)
+        ->assertSee(e(route('contact', ['topic' => 'correction', 'policy' => $policy->slug])), escape: false)
         ->assertDontSee('Private verification note')
         ->assertDontSee('Private reviewer note')
         ->assertDontSee('Private curator rationale');
@@ -109,7 +110,7 @@ it('links only web addresses in the sources, and escapes everything', function (
     ])]);
 
     $this->get(route('policies.show', $policy->slug))
-        ->assertSee('<a href="https://content.legislation.vic.gov.au/em.docx" class="underline underline-offset-4" rel="noopener">EM</a>', escape: false)
+        ->assertSee('<a href="https://content.legislation.vic.gov.au/em.docx" class="link" rel="noopener">EM</a>', escape: false)
         ->assertDontSee('href="javascript:', escape: false)
         ->assertSee('Bad: javascript:alert(1)')
         ->assertDontSee('<script>alert(1)</script>', escape: false);
