@@ -4,8 +4,10 @@ namespace App\Domain\VicParliament\ReferenceData;
 
 use App\Domain\VicParliament\Members\NameNormalizer;
 use App\Enums\ElectorateKind;
+use App\Models\Election;
 use App\Models\Electorate;
 use App\Models\House;
+use App\Models\Locality;
 use App\Models\Member;
 use App\Models\MemberAlias;
 use App\Models\Membership;
@@ -39,6 +41,8 @@ class ReferenceDataImporter
             'members' => $this->members($directory),
             'memberships' => $this->memberships($directory),
             'member_aliases' => $this->aliases($directory),
+            'localities' => $this->localities($directory),
+            'elections' => $this->elections($directory),
         ]);
     }
 
@@ -160,6 +164,66 @@ class ReferenceDataImporter
         MemberAlias::query()->whereNotIn('id', $kept)->delete();
 
         return $count;
+    }
+
+    /**
+     * Suburbs and localities, one row per locality and district it falls in,
+     * written by vic:build-localities. Loaded in bulk, as there are about
+     * 3,000 localities.
+     */
+    private function localities(string $directory): int
+    {
+        $districts = Electorate::query()->where('kind', ElectorateKind::District)->pluck('id', 'name');
+        $localities = [];
+        $shares = [];
+
+        $count = $this->each($directory, 'localities.csv', function (array $row, int $line) use ($districts, &$localities, &$shares): void {
+            $shares[] = [
+                'sal_code' => $row['sal_code'],
+                'electorate_id' => $districts[$row['district']] ?? throw new RuntimeException("localities.csv line {$line}: unknown district [{$row['district']}]."),
+                'share' => (float) $row['share'],
+            ];
+            $localities[$row['sal_code']] = [
+                'sal_code' => $row['sal_code'],
+                'name' => $row['locality'],
+                'postcodes' => json_encode(array_values(array_filter(explode(' ', $row['postcodes']))), JSON_THROW_ON_ERROR),
+            ];
+        });
+
+        $now = now();
+
+        foreach (array_chunk(array_values($localities), 500) as $chunk) {
+            Locality::query()->upsert(
+                array_map(fn (array $locality): array => [...$locality, 'created_at' => $now, 'updated_at' => $now], $chunk),
+                ['sal_code'],
+                ['name', 'postcodes', 'updated_at'],
+            );
+        }
+
+        Locality::query()->whereNotIn('sal_code', array_map('strval', array_keys($localities)))->delete();
+
+        $ids = Locality::query()->pluck('id', 'sal_code');
+        DB::table('electorate_locality')->delete();
+
+        foreach (array_chunk($shares, 1000) as $chunk) {
+            DB::table('electorate_locality')->insert(array_map(fn (array $share): array => [
+                'locality_id' => $ids[$share['sal_code']],
+                'electorate_id' => $share['electorate_id'],
+                'share' => $share['share'],
+            ], $chunk));
+        }
+
+        return $count;
+    }
+
+    private function elections(string $directory): int
+    {
+        return $this->each($directory, 'elections.csv', function (array $row): void {
+            Election::query()->updateOrCreate(['slug' => $row['slug']], [
+                'name' => $row['name'],
+                'held_on' => $row['held_on'],
+            ]);
+        });
     }
 
     /**

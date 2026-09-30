@@ -109,37 +109,91 @@ export function stanceLabel(agreement) {
 }
 
 /**
- * Match each party to the user's answers.
+ * How closely one party or MP matches the user's answers.
  *
- * For every question answered Agree (1) or Disagree (0) where the party has
- * a figure, the match is 1 − |answer − agreement|; the party's score is the
- * mean across those questions. Unsure, skipped and "no record" questions,
- * and questions where a note replaces the party's figure, are left out.
+ * For every question answered Agree (1) or Disagree (0) where they have a
+ * figure, the match is 1 − |answer − agreement|; the score is the mean
+ * across those questions. Unsure, skipped and "no record" questions, and
+ * questions where a note replaces the figure, are left out.
  */
-export function scoreParties(data, answers) {
-    return data.parties.map((party) => {
-        const matches = [];
+function matchScore(data, answers, stanceFor) {
+    const matches = [];
 
-        for (const policy of data.policies) {
-            const answer = ANSWERS[answers[policy.id]]?.value;
-            const agreement = policy.stances[party.code]?.agreement;
+    for (const policy of data.policies) {
+        const answer = ANSWERS[answers[policy.id]]?.value;
+        const agreement = stanceFor(policy)?.agreement;
 
-            if (answer === null || answer === undefined || agreement === null || agreement === undefined) {
-                continue;
-            }
-
-            matches.push(1 - Math.abs(answer - agreement));
+        if (answer === null || answer === undefined || agreement === null || agreement === undefined) {
+            continue;
         }
 
-        const score = matches.length ? matches.reduce((sum, match) => sum + match, 0) / matches.length : null;
+        matches.push(1 - Math.abs(answer - agreement));
+    }
 
-        return {
-            ...party,
-            shared: matches.length,
-            score,
-            percent: score === null ? null : Math.round(score * 100),
-        };
-    });
+    const score = matches.length ? matches.reduce((sum, match) => sum + match, 0) / matches.length : null;
+
+    return { shared: matches.length, score, percent: score === null ? null : Math.round(score * 100) };
+}
+
+export function scoreParties(data, answers) {
+    return data.parties.map((party) => ({ ...party, ...matchScore(data, answers, (policy) => policy.stances[party.code]) }));
+}
+
+export function scoreMembers(data, answers, members) {
+    return members.map((member) => ({ ...member, ...matchScore(data, answers, (policy) => policy.members?.[member.slug]) }));
+}
+
+/**
+ * The MLA for a district and the MLCs for its region, from the published
+ * data. Null for an unknown district, or data with no members (the sample).
+ */
+export function representativesFor(data, districtSlug) {
+    const district = (data.districts ?? []).find((candidate) => candidate.slug === districtSlug);
+
+    if (!district || !(data.members ?? []).length) {
+        return null;
+    }
+
+    return {
+        district,
+        region: (data.regions ?? []).find((region) => region.slug === district.region) ?? null,
+        assembly: data.members.filter((member) => member.electorate === district.slug),
+        council: data.members.filter((member) => member.electorate === district.region),
+    };
+}
+
+export const DISTRICT_KEY = 'dtrm-district';
+
+/**
+ * The voter's district, kept in the browser only, like their answers.
+ */
+export function loadDistrict() {
+    try {
+        return localStorage.getItem(DISTRICT_KEY);
+    } catch {
+        return null;
+    }
+}
+
+export function saveDistrict(slug) {
+    try {
+        localStorage.setItem(DISTRICT_KEY, slug);
+    } catch {
+        // Storage can be unavailable (private browsing); the choice just won't persist.
+    }
+}
+
+export function districtFromHash(hash) {
+    const slug = new URLSearchParams((hash || '').replace(/^#/, '')).get('d');
+
+    return slug && /^[a-z0-9-]+$/.test(slug) ? slug : null;
+}
+
+/**
+ * The part of a results link after the #: answers, and the district if chosen.
+ */
+export function resultsHash(answers, district) {
+    return `#a=${encodeAnswers(answers)}${district ? `&d=${district}` : ''}`;
 }
 
 export function comparableAnswerCount(answers) {

@@ -40,6 +40,10 @@ Hansard was considered as the source and rejected. It splits each sitting day in
 | `memberships.csv` | One row per continuous stint in one house for one party, with start and end dates. It covers by-elections, resignations, deaths and party changes. |
 | `member_aliases.csv` | Printed spellings that differ from a member's name |
 | `division_date_corrections.csv` | Divisions whose document is dated differently from the vote, each with its source |
+| `localities.csv` | Every Victorian suburb or locality, its postcodes, and the share of its residents in each district. Built by `vic:build-localities` (see below). |
+| `elections.csv` | The 2022 and 2026 state elections |
+| `party_ballot_names.csv` | Every party name printed on a ballot, linked to a party in `parties.csv` or marked as having no members in this Parliament |
+| `candidates/{election}.csv` | Each election's candidates in ballot paper order (see below) |
 
 ## Fetching
 
@@ -90,6 +94,57 @@ Each vote stores the voter's party **on the day of the vote**, taken from the da
 - documents failed to import.
 
 When `vic:import-policies` loads the curated policies, it also checks every linked division against the totals the curators worked from (see [Policy curation](policy-curation.md)).
+
+## Suburbs and postcodes
+
+The suburb finder and the district pages use `localities.csv`, built by `vic:build-localities` from Australian Bureau of Statistics data (CC BY 4.0, © Commonwealth of Australia).
+
+**Source files.** Download them into `storage/app/private/reference-data/abs/`, which is git-ignored:
+
+| File | From | SHA-256 |
+|---|---|---|
+| `SED_2025_AUST.xlsx` | [ASGS Edition 3 allocation files](https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs/edition-3-july-2021-june-2026/access-and-downloads/allocation-files) | `f2ba7d1102b6c57844921a64feb9fcbb56ba66d20fde2ad4a7eb186cfb1ae032` |
+| `SAL_2021_AUST.xlsx` | the same page | `e6be7af2fc4670375d49dfd9d83c98d48eea5049d038327d8eea94b598c7c9a3` |
+| `POA_2021_AUST.xlsx` | the same page | `e1b82115e4cb46691924f6aa996f928d3771596e1d015acc17efdd807bb12c2e` |
+| `Mesh Block Counts, 2021.xlsx` | [Census mesh block counts](https://www.abs.gov.au/census/guide-census-data/mesh-block-counts/2021/Mesh%20Block%20Counts%2C%202021.xlsx) | `1ab520c2ff0e07ca88729258c30ee9f7a7133df113a81bac94812582f3b540a3` |
+
+- **Boundaries.** The ABS's 2025 state electoral divisions are the districts of the 2021 redivision. They were first used at the 2022 election and are unchanged for 2026. The 2021 edition has the older boundaries, so it must not be used.
+- **Method.** Each mesh block is a few dozen homes, and the ABS places every one in a suburb or locality, a postcode area and a district. The command adds up the 2021 Census residents of Victoria's mesh blocks per locality and district, and per locality and postcode.
+  - Localities with no recorded residents fall back to land area.
+  - Shares under 1% are dropped as boundary slivers.
+  - The non-geographic codes "No usual address" and "Migratory" are left out.
+  - The ABS's " (Vic.)" suffix is removed from names. Other qualifiers, which tell apart two Victorian places with the same name (for example "Ascot (Ballarat)"), are kept.
+  - The command fails if any ABS district name, or the region named with it, doesn't match `electorates.csv`.
+- **Cross-check.** `--ebc=` compares the result with the Electoral Boundaries Commission's list of localities in each district, `State Districts 2022 - Localities.xlsx` (from [ebc.vic.gov.au](https://www.ebc.vic.gov.au/files/2021-boundaries/resources/State%20Districts%202022%20-%20Localities.xlsx), SHA-256 `ba60178f2ced9ed95b3bffae843fcfe33950dbe3e345c0a200baadcc4851c71d`). On 30 September 2026, every locality's largest district was one the EBC lists it under. The EBC file is only used for this check, because its licence is unclear.
+- **Result.** 2,944 localities, of which 207 are split between districts.
+- **Approximate.** Census counts are randomly adjusted slightly by the ABS for privacy, and a locality's share is its share of residents, not of addresses. Near a boundary, voters are pointed to the VEC's address lookup.
+
+`vic:import-data` loads `localities.csv`. The finder downloads the whole list as one file, `/localities/{sha256}.json`, and searches it in the browser.
+
+## Candidates
+
+`vic:import-candidates {election}` loads `database/data/candidates/{election}.csv`. There is one row per candidate, in ballot paper order:
+
+| Column | Contents |
+|---|---|
+| `electorate` | The district or region slug |
+| `group` | The Council group letter; blank for Assembly candidates and ungrouped Council candidates |
+| `ballot_position` | The position on the ballot, from 1 within the electorate (and group) |
+| `surname`, `given_names` | As printed on the ballot |
+| `ballot_party` | The party name as printed, or blank |
+| `member` | Blank to match a sitting MP by name, an MP's slug to settle an ambiguous name, or `-` for a candidate who is not an MP |
+
+- Every printed party name must be in `party_ballot_names.csv`. This links it to a party with a record in this Parliament, or records that it has none. A misspelt name can't silently lose a party's record.
+- Sitting MPs are matched by name, with all given names and then just the first, since ballots can include middle names. The command lists every match to check.
+- The whole file is checked before anything changes. A valid file replaces that election's candidates.
+- District pages show candidates only for the next election.
+
+**The 2022 list** tests the importer on real data. It was converted from the VEC's 2022 results pages (CC BY 4.0, © Victorian Electoral Commission), saved in `storage/app/private/reference-data/vec-2022/`.
+- District pages list candidates in ballot order.
+- Region pages list candidates group by group, without group letters. The letters were assigned in page order to each run of candidates from the same party, and blank-party candidates after the last group were treated as ungrouped.
+- It is not loaded in production.
+
+**The 2026 list.** The VEC will publish the final candidates in ballot paper order after the ballot draws, which start at 4pm on Monday 9 November 2026. Convert that list to the same CSV format and add any new party names to `party_ballot_names.csv`.
 
 ## Known limitations
 

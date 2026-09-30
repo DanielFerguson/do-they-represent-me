@@ -1,7 +1,10 @@
 <?php
 
+use App\Domain\Localities\LocalityDirectory;
 use App\Domain\Stances\StanceSnapshots;
+use App\Models\Electorate;
 use App\Models\Policy;
+use Illuminate\Support\Facades\URL;
 
 it('renders the public pages', function (string $route, string $text) {
     $this->get(route($route))
@@ -9,10 +12,52 @@ it('renders the public pages', function (string $route, string $text) {
         ->assertSee($text, escape: false)
         ->assertSee('Your answers stay in your browser');
 })->with([
-    'home' => ['home', 'How do Victoria\'s parties actually vote?'],
+    'home' => ['home', 'How do Victoria\'s parties and MPs actually vote?'],
     'quiz' => ['quiz', 'Loading questions'],
     'results' => ['results', 'Working out your results'],
+    'districts' => ['districts.index', 'Find your district'],
+    'questions' => ['policies.index', 'The questions'],
+    'methodology' => ['methodology', 'How the questions were chosen'],
+    'privacy' => ['privacy', 'The public pages set no cookies'],
+    'about' => ['about', 'Corrections and right of reply'],
 ]);
+
+it('sets no cookies on public pages, so they stay private and cacheable', function (Closure $path) {
+    $this->get($path())->assertOk()->assertHeaderMissing('Set-Cookie');
+})->with([
+    'home' => fn () => route('home'),
+    'quiz' => fn () => route('quiz'),
+    'results' => fn () => route('results'),
+    'districts' => fn () => route('districts.index'),
+    'a district' => fn () => route('districts.show', Electorate::factory()->create()->slug),
+    'questions' => fn () => route('policies.index'),
+    'a question' => fn () => route('policies.show', Policy::factory()->published()->create()->slug),
+    'methodology' => fn () => route('methodology'),
+    'privacy' => fn () => route('privacy'),
+    'about' => fn () => route('about'),
+    'localities' => fn () => app(LocalityDirectory::class)->url(),
+    'preview quiz' => fn () => URL::temporarySignedRoute('preview.quiz', now()->addDay(), absolute: false),
+]);
+
+it('shows the authorisation statement in the footer only once it is configured', function () {
+    $this->get(route('about'))->assertDontSee('Authorised by');
+
+    config(['site.authorisation' => 'Authorised by A. Person, 1 Example Street, Melbourne.']);
+
+    $this->get(route('home'))->assertSee('Authorised by A. Person, 1 Example Street, Melbourne.');
+});
+
+it('gives the contact email on the about and privacy pages once it is configured', function (string $route) {
+    config(['site.contact_email' => 'corrections@example.org']);
+
+    $this->get(route($route))->assertSee('mailto:corrections@example.org', escape: false);
+})->with(['about', 'privacy']);
+
+it('says plainly on the methodology page that the questions were drafted with AI and checked by people', function () {
+    $this->get(route('methodology'))
+        ->assertSee('drafted with AI')
+        ->assertSee('checked by human reviewers');
+});
 
 it('marks the prototype data as sample data', function (string $route) {
     $this->get(route($route))->assertSee('Prototype.');

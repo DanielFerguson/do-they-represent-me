@@ -4,6 +4,7 @@ namespace App\Domain\Stances;
 
 use App\Models\Policy;
 use App\Models\StanceSnapshot;
+use Closure;
 
 /**
  * Versions of the published quiz data. Each is stored as the exact JSON body
@@ -47,10 +48,12 @@ class StanceSnapshots
     /**
      * The current data including policies still in review, for reviewers'
      * preview links. Built on request and never stored.
+     *
+     * @param  Closure(Policy): string  $policyUrl  the preview link to each policy's evidence page
      */
-    public function previewBody(): string
+    public function previewBody(Closure $policyUrl): string
     {
-        return $this->encode($this->builder->build(includeReview: true))[1];
+        return $this->encode($this->builder->build(includeReview: true, policyUrl: $policyUrl))[1];
     }
 
     /**

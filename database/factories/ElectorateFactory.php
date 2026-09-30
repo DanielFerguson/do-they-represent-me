@@ -26,4 +26,20 @@ class ElectorateFactory extends Factory
             'slug' => fake()->unique()->slug(2),
         ];
     }
+
+    /**
+     * A Legislative Council region.
+     */
+    public function region(): static
+    {
+        return $this->state(['kind' => ElectorateKind::Region]);
+    }
+
+    /**
+     * An Assembly district within the given region.
+     */
+    public function inRegion(Electorate $region): static
+    {
+        return $this->state(['kind' => ElectorateKind::District, 'region_id' => $region->id]);
+    }
 }

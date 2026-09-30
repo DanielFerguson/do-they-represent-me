@@ -56,16 +56,18 @@ Two cases get no agreement figure:
 A member who could not vote on any linked division gets no row at all. This is how an Assembly MP is shown as having "no vote recorded" on a Council-only question.
 
 **Display notes.** Where reviewers found that a figure would misstate a party's or MP's position, the policy workbook gives a note for that pair.
-- The published data shows the note instead of the figure.
-- That party is left out of matching on that policy.
+- The published data, the district pages and the evidence pages all show the note instead of the figure (`SubjectStance`).
+- That party or MP is left out of matching on that policy.
 - The underlying score is still calculated and visible to curators.
 
 ## Published quiz data
 
 After each recalculation the published policies are written out as one JSON document. Only policies marked Ready in the workbook are included. The document contains:
-- each policy's question and description;
+- each policy's question and description, and a link to its evidence page;
 - for each party with a record, in alphabetical order so the order means nothing:
-  - its agreement figure and category label, or its note.
+  - its agreement figure and category label, or its note;
+- for each current MP with a record on the policy, the same;
+- the MPs, with their party, house and electorate, and the districts and regions, so results can show a voter's own MPs.
 
 The document is stored exactly as served and named by the SHA-256 of its content. It records the date of the latest division and the SHA-256 of the workbook it came from. Earlier versions are kept, so a shared results link keeps working. Until a policy is published, the public quiz uses the labelled prototype data.
 
@@ -78,6 +80,7 @@ Matching happens in the voter's browser. Answers never leave the device. They ar
 - "Unsure" and "Skip" answers, and policies without a score, are left out.
 - A result needs at least 5 Agree or Disagree answers.
 - A party is ranked only if it has a score on at least 3 of the voter's answered questions. Otherwise it is listed separately as having too few shared votes.
+- **Your MPs.** Once the voter chooses a district, the MLA for it and the five MLCs for its region are matched the same way, from their own votes, with the same minimum of 3 shared questions. An MLA has no record on a question voted on only in the Council, and an MLC none on one voted on only in the Assembly. The district is kept in the browser and in the results link (`#a=…&d=district`), like the answers.
 - A party whose figure is replaced by a display note is left out on that question, and the note is shown instead.
 
 ## Checking the results

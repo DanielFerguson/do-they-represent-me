@@ -32,6 +32,25 @@ class ProceedingsDocument extends Model
     }
 
     /**
+     * A link to the document on the Parliament's website, preferring the
+     * PDF, which opens in the browser. The stored links are site-relative.
+     */
+    public function sourceUrl(): ?string
+    {
+        $path = $this->pdf_url ?: $this->docx_url;
+
+        if ($path === '') {
+            return null;
+        }
+
+        if (str_starts_with($path, 'https://') || str_starts_with($path, 'http://')) {
+            return $path;
+        }
+
+        return rtrim((string) config('services.parliament_vic.base_url'), '/').'/'.ltrim($path, '/');
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

@@ -1,0 +1,4 @@
+house,kind,name,slug,region
+council,region,Region One,region-one,
+assembly,district,Alpha,alpha,Region One
+assembly,district,Beta,beta,Region One

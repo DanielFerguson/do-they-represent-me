@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Localities\LocalityDirectory;
 use App\Domain\Stances\StanceSnapshots;
 use Illuminate\Contracts\View\View;
 
@@ -13,9 +14,9 @@ class QuizPagesController extends Controller
 {
     public function __construct(private StanceSnapshots $snapshots) {}
 
-    public function home(): View
+    public function home(LocalityDirectory $localities): View
     {
-        return view('home', $this->pageData());
+        return view('home', [...$this->pageData(), 'localitiesUrl' => $localities->url()]);
     }
 
     public function quiz(): View
@@ -29,7 +30,7 @@ class QuizPagesController extends Controller
     }
 
     /**
-     * @return array{stancesUrl: string, quizUrl: string, resultsUrl: string, storageKey: string, isSample: bool, isPreview: bool}
+     * @return array{stancesUrl: string, quizUrl: string, resultsUrl: string, districtUrl: string, storageKey: string, isSample: bool, isPreview: bool}
      */
     private function pageData(): array
     {
@@ -39,6 +40,7 @@ class QuizPagesController extends Controller
             'stancesUrl' => $snapshot === null ? asset('stances/sample.json') : route('stances.show', $snapshot->hash),
             'quizUrl' => route('quiz'),
             'resultsUrl' => route('results'),
+            'districtUrl' => route('districts.show', '__district__', absolute: false),
             'storageKey' => 'dtrm-answers',
             'isSample' => $snapshot === null,
             'isPreview' => false,

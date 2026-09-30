@@ -17,7 +17,6 @@
         "@laravel/multiplex": "^0.4.1"
     },
     "dependencies": {
-        "@alpinejs/csp": "^3.17.4",
-        "posthog-js": "^1.434.17"
+        "@alpinejs/csp": "^3.17.4"
     }
 }

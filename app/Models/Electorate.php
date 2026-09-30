@@ -8,8 +8,12 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property ElectorateKind $kind
+ */
 #[Fillable(['house_id', 'kind', 'name', 'slug', 'region_id'])]
 class Electorate extends Model
 {
@@ -40,6 +44,33 @@ class Electorate extends Model
     public function districts(): HasMany
     {
         return $this->hasMany(Electorate::class, 'region_id');
+    }
+
+    /**
+     * The suburbs and localities with residents in this district, with the
+     * share of each locality's residents who live here.
+     *
+     * @return BelongsToMany<Locality, $this>
+     */
+    public function localities(): BelongsToMany
+    {
+        return $this->belongsToMany(Locality::class)->withPivot('share');
+    }
+
+    /**
+     * @return HasMany<Membership, $this>
+     */
+    public function memberships(): HasMany
+    {
+        return $this->hasMany(Membership::class);
+    }
+
+    /**
+     * @return HasMany<Candidate, $this>
+     */
+    public function candidates(): HasMany
+    {
+        return $this->hasMany(Candidate::class);
     }
 
     /**

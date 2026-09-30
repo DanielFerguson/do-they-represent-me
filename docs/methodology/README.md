@@ -13,7 +13,9 @@ How *Do They Represent Me?* turns the Parliament of Victoria's records into quiz
 | Item | Location | Notes |
 |---|---|---|
 | Code for parsing, importing and scoring | this repository | Each result can be traced to a commit. |
-| Curated reference data: houses, parties, electorates, members, dated memberships, name aliases, division date corrections | `database/data/*.csv` | Edited by hand. `vic:import-data` loads everything except the date corrections, which are applied when proceedings are imported. |
+| Curated reference data: houses, parties, electorates, members, dated memberships, name aliases, division date corrections, elections, ballot party names | `database/data/*.csv` | Edited by hand. `vic:import-data` loads them, except the date corrections, which are applied when proceedings are imported, and the ballot names, which the candidate importer reads. |
+| Suburbs and postcodes to districts | `database/data/localities.csv` | Built by `vic:build-localities` from ABS files kept in `storage/app/private/reference-data/abs/` (git-ignored; their hashes are in [Data pipeline](data-pipeline.md#suburbs-and-postcodes)). |
+| Candidates | `database/data/candidates/{election}.csv` | Loaded by `vic:import-candidates`. The 2022 list is test data, converted from VEC pages saved in `storage/app/private/reference-data/vec-2022/`. |
 | Published quiz data | the `stance_snapshots` table, served at `/stances/{sha256}.json` | Every published version is kept, so a shared results link keeps the data it was made with. Each records the SHA-256 of the workbook it came from. |
 | Raw proceedings documents | the default storage disk, under `proceedings/{house}/` | In production this is the private Laravel Cloud bucket. |
 | Policy workbook: questions, linked votes, display notes, review log and sources | the default storage disk: every imported version at `policy-research/workbooks/{sha256}.xlsx` | It is the only place policy text is edited. New versions are uploaded on the admin panel's Policy workbook page. Each import is recorded in `policy_imports` with its SHA-256 hash and who uploaded it. |
@@ -29,9 +31,10 @@ php artisan vic:import-data
 php artisan vic:sync-proceedings
 php artisan vic:audit
 php artisan vic:import-policies
+php artisan vic:import-candidates 2026   # once the VEC publishes the list
 ```
 
-1. `vic:import-data` loads the curated reference data.
+1. `vic:import-data` loads the curated reference data, including the localities. To rebuild `localities.csv` itself from the ABS files, run `vic:build-localities` first.
 2. `vic:sync-proceedings` downloads every Votes and Proceedings and Minutes document for the 60th Parliament, stores the raw files, imports every division, then recalculates scores.
    - If the Parliament's website is unavailable but the raw files are in storage, run `vic:reparse` instead.
 3. `vic:audit` must pass with no failed checks before any results are published.

@@ -60,7 +60,7 @@ class DivisionResource extends Resource
                         TextEntry::make('presidingMember.display_name')->label('In the chair')->placeholder('Not recorded'),
                         TextEntry::make('body'),
                         TextEntry::make('proceedingsDocument.title')->label('Source document')
-                            ->url(fn (Division $record): ?string => $record->proceedingsDocument->docx_url ?: $record->proceedingsDocument->pdf_url, shouldOpenInNewTab: true),
+                            ->url(fn (Division $record): ?string => $record->proceedingsDocument->sourceUrl(), shouldOpenInNewTab: true),
                     ]),
             ]);
     }

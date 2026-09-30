@@ -34,9 +34,10 @@
 
                 <h1 id="question" class="text-2xl font-semibold leading-snug tracking-tight sm:text-3xl" x-text="current.question"></h1>
 
-                <details x-show="current.description" class="text-sm text-zinc-600 dark:text-zinc-400">
+                <details x-show="current.description || current.url" class="text-sm text-zinc-600 dark:text-zinc-400">
                     <summary class="cursor-pointer underline-offset-4 hover:underline">About this question</summary>
-                    <p class="mt-2 leading-relaxed" x-text="current.description"></p>
+                    <p x-show="current.description" class="mt-2 leading-relaxed" x-text="current.description"></p>
+                    <p x-show="current.url" class="mt-2"><a x-bind:href="current.url" class="underline underline-offset-4">See the votes behind this question</a></p>
                 </details>
 
                 <div class="flex flex-col gap-3">

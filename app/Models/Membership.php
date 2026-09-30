@@ -67,6 +67,17 @@ class Membership extends Model
     }
 
     /**
+     * Seats still held, or held until the end of the Parliament.
+     *
+     * @param  Builder<Membership>  $query
+     */
+    #[Scope]
+    protected function current(Builder $query): void
+    {
+        $query->whereNull('ends_on');
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

@@ -26,6 +26,16 @@ enum PartyPosition: string
         };
     }
 
+    public function label(): string
+    {
+        return match ($this) {
+            self::Aye => 'Aye',
+            self::No => 'No',
+            self::Split => 'Split evenly',
+            self::None => 'None',
+        };
+    }
+
     public function asVote(): ?VoteValue
     {
         return match ($this) {

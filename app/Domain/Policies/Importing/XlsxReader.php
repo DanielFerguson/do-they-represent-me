@@ -2,6 +2,7 @@
 
 namespace App\Domain\Policies\Importing;
 
+use Generator;
 use RuntimeException;
 use XMLReader;
 use ZipArchive;
@@ -41,54 +42,71 @@ class XlsxReader
      */
     public function rows(string $path, string $sheetName): array
     {
+        return iterator_to_array($this->eachRow($path, $sheetName));
+    }
+
+    /**
+     * Stream the non-empty rows of the named sheet one at a time, so very
+     * large sheets need not be held in memory. Keys are row numbers and
+     * cells are keyed by zero-based column index.
+     *
+     * @return Generator<int, array<int, string>>
+     */
+    public function eachRow(string $path, string $sheetName): Generator
+    {
         $this->guardAgainstOversizedInput($path);
 
         $sheetPath = $this->sheetPath($path, $sheetName);
         $sharedStrings = $this->sharedStrings($path);
         $reader = $this->open($path, $sheetPath);
 
-        $rows = [];
+        $row = [];
         $rowNumber = 0;
         $column = -1;
         $cell = null;
         $inPhonetic = false;
 
-        while ($reader->read()) {
-            if (! in_array($reader->namespaceURI, self::SPREADSHEET_NAMESPACES, true)) {
-                continue;
-            }
-
-            if ($reader->nodeType === XMLReader::ELEMENT) {
-                if ($reader->localName === 'row') {
-                    $rowNumber = (int) ($reader->getAttribute('r') ?? $rowNumber + 1);
-                    $column = -1;
-                } elseif ($reader->localName === 'c') {
-                    $reference = $reader->getAttribute('r');
-                    $column = $reference !== null ? $this->columnIndex($reference) : $column + 1;
-                    $cell = $reader->isEmptyElement ? null : ['type' => $reader->getAttribute('t') ?? 'n', 'value' => ''];
-                } elseif ($cell !== null && $reader->localName === 'v') {
-                    $cell['value'] = $reader->readString();
-                } elseif ($cell !== null && $reader->localName === 't' && ! $inPhonetic) {
-                    $cell['value'] .= $reader->readString();
-                } elseif ($reader->localName === 'rPh' && ! $reader->isEmptyElement) {
-                    $inPhonetic = true;
-                }
-            } elseif ($reader->nodeType === XMLReader::END_ELEMENT && $reader->localName === 'rPh') {
-                $inPhonetic = false;
-            } elseif ($reader->nodeType === XMLReader::END_ELEMENT && $reader->localName === 'c' && $cell !== null) {
-                $value = $cell['type'] === 's' ? ($sharedStrings[(int) $cell['value']] ?? '') : $cell['value'];
-
-                if ($value !== '') {
-                    $rows[$rowNumber][$column] = $value;
+        try {
+            while ($reader->read()) {
+                if (! in_array($reader->namespaceURI, self::SPREADSHEET_NAMESPACES, true)) {
+                    continue;
                 }
 
-                $cell = null;
+                if ($reader->nodeType === XMLReader::ELEMENT) {
+                    if ($reader->localName === 'row') {
+                        $rowNumber = (int) ($reader->getAttribute('r') ?? $rowNumber + 1);
+                        $column = -1;
+                        $row = [];
+                    } elseif ($reader->localName === 'c') {
+                        $reference = $reader->getAttribute('r');
+                        $column = $reference !== null ? $this->columnIndex($reference) : $column + 1;
+                        $cell = $reader->isEmptyElement ? null : ['type' => $reader->getAttribute('t') ?? 'n', 'value' => ''];
+                    } elseif ($cell !== null && $reader->localName === 'v') {
+                        $cell['value'] = $reader->readString();
+                    } elseif ($cell !== null && $reader->localName === 't' && ! $inPhonetic) {
+                        $cell['value'] .= $reader->readString();
+                    } elseif ($reader->localName === 'rPh' && ! $reader->isEmptyElement) {
+                        $inPhonetic = true;
+                    }
+                } elseif ($reader->nodeType === XMLReader::END_ELEMENT && $reader->localName === 'rPh') {
+                    $inPhonetic = false;
+                } elseif ($reader->nodeType === XMLReader::END_ELEMENT && $reader->localName === 'c' && $cell !== null) {
+                    $value = $cell['type'] === 's' ? ($sharedStrings[(int) $cell['value']] ?? '') : $cell['value'];
+
+                    if ($value !== '') {
+                        $row[$column] = $value;
+                    }
+
+                    $cell = null;
+                } elseif ($reader->nodeType === XMLReader::END_ELEMENT && $reader->localName === 'row' && $row !== []) {
+                    yield $rowNumber => $row;
+
+                    $row = [];
+                }
             }
+        } finally {
+            $reader->close();
         }
-
-        $reader->close();
-
-        return $rows;
     }
 
     /**

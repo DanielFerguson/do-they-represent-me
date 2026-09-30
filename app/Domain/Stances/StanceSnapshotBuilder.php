@@ -2,45 +2,69 @@
 
 namespace App\Domain\Stances;
 
-use App\Enums\AgreementCategory;
+use App\Enums\ElectorateKind;
 use App\Enums\PolicyStatus;
 use App\Models\Division;
+use App\Models\Electorate;
+use App\Models\Member;
+use App\Models\Membership;
 use App\Models\Party;
 use App\Models\Policy;
 use App\Models\PolicyAgreement;
 use App\Models\PolicyImport;
+use Closure;
+use Illuminate\Support\Collection;
 
 /**
  * Builds the data the quiz and results pages score answers against: each
- * policy's question and each party's agreement with it.
+ * policy's question, each party's and each current MP's agreement with it,
+ * and the districts and regions, so results can show a voter's own MPs.
  *
  * Only public fields are included; reviewer and verification notes stay in
  * the admin panel. Parties are listed alphabetically so their order carries
- * no meaning. Where the workbook gives a display note for a party, the note
- * replaces the figure, so that party is left out of matching on that policy.
+ * no meaning. Stances come from SubjectStance, so where the workbook gives a
+ * display note for a party or MP, the note replaces the figure.
  *
- * @phpstan-type Stance array{agreement: ?float, label: ?string, note?: string}
- * @phpstan-type StancePayload array{data_as_of: ?string, workbook_sha256: ?string, parties: list<array{code: string, short_name: string, name: string}>, policies: list<array{id: int, slug: string, topic: ?string, title: string, question: string, description: ?string, stances: array<string, Stance>}>}
+ * @phpstan-import-type Stance from SubjectStance
+ *
+ * @phpstan-type StancePayload array{
+ *     data_as_of: ?string,
+ *     workbook_sha256: ?string,
+ *     parties: list<array{code: string, short_name: string, name: string}>,
+ *     regions: list<array{slug: string, name: string}>,
+ *     districts: list<array{slug: string, name: string, region: ?string}>,
+ *     members: list<array{slug: string, name: string, party: string, house: string, electorate: string}>,
+ *     policies: list<array{id: int, slug: string, topic: ?string, title: string, question: string, description: ?string, url: string, stances: array<string, Stance>, members: array<string, Stance>}>,
+ * }
  */
 class StanceSnapshotBuilder
 {
     /**
+     * @param  (Closure(Policy): string)|null  $policyUrl  the link to each policy's evidence page; public pages by default
      * @return StancePayload
      */
-    public function build(bool $includeReview = false): array
+    public function build(bool $includeReview = false, ?Closure $policyUrl = null): array
     {
+        $policyUrl ??= fn (Policy $policy): string => route('policies.show', $policy->slug, absolute: false);
         $statuses = $includeReview ? [PolicyStatus::Published, PolicyStatus::Review] : [PolicyStatus::Published];
         $policies = Policy::query()
             ->whereIn('status', $statuses)
             ->orderBy('number')
-            ->with(['agreements' => fn ($query) => $query->where('subject_type', 'party')])
+            ->with('agreements')
             ->get();
 
         $parties = Party::query()
             ->where('is_whipless', false)
-            ->whereIn('id', $policies->flatMap(fn (Policy $policy) => $policy->agreements->pluck('subject_id'))->unique())
+            ->whereIn('id', $policies->flatMap(fn (Policy $policy) => $policy->agreements->where('subject_type', 'party')->pluck('subject_id'))->unique())
             ->get()
             ->sortBy(fn (Party $party): string => $party->display_name ?? $party->name)
+            ->values();
+
+        $seats = Membership::query()
+            ->current()
+            ->with(['member', 'party', 'house', 'electorate'])
+            ->get()
+            ->sortBy(fn (Membership $seat): string => $seat->member->display_name)
             ->values();
 
         $latestDivision = Division::query()->max('sitting_date');
@@ -53,6 +77,14 @@ class StanceSnapshotBuilder
                 'short_name' => $party->display_name ?? $party->name,
                 'name' => $party->name,
             ])->all(),
+            ...$this->electorates(),
+            'members' => $seats->map(fn (Membership $seat): array => [
+                'slug' => $seat->member->slug,
+                'name' => $seat->member->display_name,
+                'party' => $seat->party->display_name ?? $seat->party->name,
+                'house' => $seat->house->slug,
+                'electorate' => $seat->electorate->slug,
+            ])->all(),
             'policies' => $policies->map(fn (Policy $policy): array => [
                 'id' => $policy->number,
                 'slug' => $policy->slug,
@@ -60,32 +92,50 @@ class StanceSnapshotBuilder
                 'title' => $policy->title,
                 'question' => $policy->question,
                 'description' => $policy->description,
-                'stances' => $this->stances($policy, $parties->all()),
+                'url' => $policyUrl($policy),
+                'stances' => $this->stances($policy, $parties, fn (Party $party): string => $party->short_name),
+                'members' => $this->stances($policy, $seats->map->member, fn (Member $member): string => $member->slug),
             ])->all(),
         ];
     }
 
     /**
-     * @param  list<Party>  $parties
+     * @return array{regions: list<array{slug: string, name: string}>, districts: list<array{slug: string, name: string, region: ?string}>}
+     */
+    private function electorates(): array
+    {
+        $electorates = Electorate::query()->with('region')->orderBy('name')->get();
+
+        return [
+            'regions' => $electorates->where('kind', ElectorateKind::Region)->map(fn (Electorate $region): array => [
+                'slug' => $region->slug,
+                'name' => $region->name,
+            ])->values()->all(),
+            'districts' => $electorates->where('kind', ElectorateKind::District)->map(fn (Electorate $district): array => [
+                'slug' => $district->slug,
+                'name' => $district->name,
+                'region' => $district->region?->slug,
+            ])->values()->all(),
+        ];
+    }
+
+    /**
+     * @template TSubject of Party|Member
+     *
+     * @param  Collection<int, TSubject>  $subjects
+     * @param  Closure(TSubject): string  $key
      * @return array<string, Stance>
      */
-    private function stances(Policy $policy, array $parties): array
+    private function stances(Policy $policy, Collection $subjects, Closure $key): array
     {
-        $agreements = $policy->agreements->keyBy('subject_id');
-        $notes = collect($policy->display_notes ?? [])->where('subject_type', 'party')->pluck('note', 'subject_id');
+        $records = $policy->agreements->keyBy(fn (PolicyAgreement $agreement): string => "{$agreement->subject_type}:{$agreement->subject_id}");
         $stances = [];
 
-        foreach ($parties as $party) {
-            /** @var PolicyAgreement|null $agreement */
-            $agreement = $agreements->get($party->id);
+        foreach ($subjects as $subject) {
+            $stance = SubjectStance::for($policy, $subject, $records->get("{$subject->getMorphClass()}:{$subject->getKey()}"));
 
-            if ($notes->has($party->id)) {
-                $stances[$party->short_name] = ['agreement' => null, 'label' => null, 'note' => (string) $notes->get($party->id)];
-            } elseif ($agreement !== null) {
-                $stances[$party->short_name] = [
-                    'agreement' => $agreement->agreement === null ? null : round((float) $agreement->agreement, 4),
-                    'label' => AgreementCategory::from($agreement->category)->label(),
-                ];
+            if ($stance !== null) {
+                $stances[$key($subject)] = $stance->toArray();
             }
         }
 

@@ -4,6 +4,10 @@ use App\Domain\Stances\StanceSnapshotBuilder;
 use App\Enums\AgreementCategory;
 use App\Enums\PolicyStatus;
 use App\Models\Division;
+use App\Models\Electorate;
+use App\Models\House;
+use App\Models\Member;
+use App\Models\Membership;
 use App\Models\Party;
 use App\Models\Policy;
 use App\Models\PolicyAgreement;
@@ -23,7 +27,8 @@ it('includes only published policies, in number order, with their public fields'
     $policies = buildStances()['policies'];
 
     expect(array_column($policies, 'id'))->toBe([3, 12])
-        ->and(array_keys($policies[0]))->toBe(['id', 'slug', 'topic', 'title', 'question', 'description', 'stances'])
+        ->and(array_keys($policies[0]))->toBe(['id', 'slug', 'topic', 'title', 'question', 'description', 'url', 'stances', 'members'])
+        ->and($policies[0]['url'])->toBe("/policies/{$first->slug}")
         ->and($policies[0]['description'])->toBe('What the bill did.')
         ->and($policies[1]['question'])->toBe($second->question)
         ->and(json_encode($policies))->not->toContain('Private note')->not->toContain('Reviewer note');
@@ -98,4 +103,44 @@ it('records how recent the data is and which workbook it came from', function ()
 
     expect($stances['data_as_of'])->toBe('2026-09-24')
         ->and($stances['workbook_sha256'])->toBe($latest->sha256);
+});
+
+it('lists current MPs with their party, house and electorate, and the districts and regions, so results can show a voter\'s own MPs', function () {
+    $assembly = House::factory()->create(['slug' => 'assembly']);
+    $council = House::factory()->create(['slug' => 'council']);
+    $region = Electorate::factory()->region()->create(['house_id' => $council->id, 'slug' => 'northern-metropolitan', 'name' => 'Northern Metropolitan']);
+    $district = Electorate::factory()->inRegion($region)->create(['house_id' => $assembly->id, 'slug' => 'brunswick', 'name' => 'Brunswick']);
+    $labor = Party::factory()->create(['display_name' => 'Labor']);
+    $mla = Member::factory()->create(['slug' => 'jo-smith', 'display_name' => 'Jo Smith']);
+    Membership::factory()->for($mla)->for($labor)->create(['house_id' => $assembly->id, 'electorate_id' => $district->id]);
+    $former = Member::factory()->create();
+    Membership::factory()->for($former)->between('2022-11-26', '2024-01-01')->create(['house_id' => $assembly->id, 'electorate_id' => $district->id]);
+
+    $stances = buildStances();
+
+    expect($stances['members'])->toBe([['slug' => 'jo-smith', 'name' => 'Jo Smith', 'party' => 'Labor', 'house' => 'assembly', 'electorate' => 'brunswick']])
+        ->and($stances['districts'])->toBe([['slug' => 'brunswick', 'name' => 'Brunswick', 'region' => 'northern-metropolitan']])
+        ->and($stances['regions'])->toBe([['slug' => 'northern-metropolitan', 'name' => 'Northern Metropolitan']]);
+});
+
+it('gives each current MP their own agreement, and a reviewers\' note instead of the figure where one applies', function () {
+    $limbrick = Membership::factory()->for(Member::factory()->state(['display_name' => 'David Limbrick']))->create()->member;
+    $other = Membership::factory()->for(Member::factory()->state(['display_name' => 'Zoe Other']))->create()->member;
+    $policy = Policy::factory()->published()->create(['display_notes' => [
+        ['subject_type' => 'member', 'subject_id' => $limbrick->id, 'note' => 'Voted for the bill but opposed the closure.'],
+    ]]);
+    PolicyAgreement::factory()->for($policy)->for($limbrick, 'subject')->agreement(1.0)->create();
+    PolicyAgreement::factory()->for($policy)->for($other, 'subject')->agreement(0.0)->create();
+
+    expect(buildStances()['policies'][0]['members'])->toBe([
+        $limbrick->slug => ['agreement' => null, 'label' => null, 'note' => 'Voted for the bill but opposed the closure.'],
+        $other->slug => ['agreement' => 0.0, 'label' => 'Consistently against'],
+    ]);
+});
+
+it('leaves out MPs with no record on a policy, such as an MLA on a Council-only question', function () {
+    Membership::factory()->create();
+    Policy::factory()->published()->create();
+
+    expect(buildStances()['policies'][0]['members'])->toBe([]);
 });
