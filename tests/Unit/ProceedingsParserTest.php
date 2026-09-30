@@ -142,6 +142,58 @@ it('attributes council committee of the whole divisions to the bill in the suppl
         ->and($division->question)->toBe('Question — That the amendments be agreed to — put.');
 });
 
+it('recognises a supplement bill heading printed with "bill" in lower case', function () {
+    $divisions = (new ProceedingsParser)->parse([
+        'No. 112 — Thursday, 3 April 2025',
+        '13ADJOURNMENT — Ingrid Stitt moved, That the House do now adjourn.',
+        'COMMITTEE OF THE WHOLE COUNCIL',
+        'JUSTICE LEGISLATION AMENDMENT (ANTI-VILIFICATION AND SOCIAL COHESION) bill 2024',
+        'Committed Tuesday, 1 April 2025',
+        'Clause 9 — Evan Mulholland moved amendment No. 1 (EM25C).',
+        'Question — That the amendment be agreed to — put.',
+        'The Committee divided — The Deputy President in the Chair.',
+        'AYES, 1',
+        'Melina Bath.',
+        'NOES, 2',
+        'Ryan Batchelor; John Berger.',
+        'Question negatived.',
+    ]);
+
+    expect($divisions)->toHaveCount(1)
+        ->and($divisions[0]->itemTitle)->toBe('JUSTICE LEGISLATION AMENDMENT (ANTI-VILIFICATION AND SOCIAL COHESION) BILL 2024')
+        ->and($divisions[0]->itemNumber)->toBeNull();
+});
+
+it('dates a supplement committee division to the day the bill was committed', function () {
+    $divisions = (new ProceedingsParser)->parse([
+        'No. 110 — Tuesday, 1 April 2025',
+        'No. 112 — Thursday, 3 April 2025',
+        'COMMITTEE OF THE WHOLE COUNCIL',
+        'JUSTICE LEGISLATION AMENDMENT (ANTI-VILIFICATION AND SOCIAL COHESION) BILL 2024',
+        'Committed Tuesday, 1 April 2025',
+        'Question — That the amendment be agreed to — put.',
+        'The Committee divided — The Deputy President in the Chair.',
+        'AYES, 1',
+        'Melina Bath.',
+        'NOES, 2',
+        'Ryan Batchelor; John Berger.',
+        'Question negatived.',
+        'SOCIAL SERVICES REGULATION AMENDMENT BILL 2025',
+        'Question — That the amendment be agreed to — put.',
+        'The Committee divided — The Deputy President in the Chair.',
+        'AYES, 1',
+        'Melina Bath.',
+        'NOES, 2',
+        'Ryan Batchelor; John Berger.',
+        'Question negatived.',
+    ]);
+
+    expect($divisions)->toHaveCount(2)
+        ->and($divisions[0]->sittingNumber)->toBe(112)
+        ->and($divisions[0]->sittingDate->toDateString())->toBe('2025-04-01')
+        ->and($divisions[1]->sittingDate->toDateString())->toBe('2025-04-03');
+});
+
 it('looks past a bare "Question — put." to the motion that was put', function () {
     $divisions = (new ProceedingsParser)->parse([
         'No. 137 — Tuesday, 28 October 2025',

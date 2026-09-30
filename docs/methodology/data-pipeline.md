@@ -55,7 +55,8 @@ Each raw document is stored, with its SHA-256 hash, before parsing. An unchanged
 
 `ProceedingsParser` reads the document's paragraphs in order.
 - Sitting headings give the sitting number and date.
-- Numbered item headings give the business item. Unnumbered bill headings do too; these appear in Council committee-of-the-whole supplements.
+- Numbered item headings give the business item. Unnumbered bill headings do too; these appear in Council committee-of-the-whole supplements, sometimes with "bill" in lower case.
+- A committee division printed in a supplement is dated to the day the bill was committed ("Committed Tuesday, 1 April 2025"), not to the document's last sitting. A heading repeated for a later day's continuation has no such line and keeps the last sitting's date.
 - Each "The House/Council/Committee divided" paragraph starts a division. The parser then reads:
   - the question: the nearest earlier paragraph containing "That…", which is needed because some divisions only say "Question — put.";
   - the Ayes and Noes headings and totals, and the name lists that follow them;

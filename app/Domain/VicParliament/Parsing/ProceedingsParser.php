@@ -36,8 +36,15 @@ class ProceedingsParser
 
     /**
      * Unnumbered bill headings, used by the Council's "Committee of the whole" supplement.
+     * Some supplements print the word "bill" in lower case.
      */
-    private const BILL_HEADING = "/^(?=.*\\bBILL \\d{4}$)[\\p{Lu}\\d\\s,’'()\\-–&.]+$/u";
+    private const BILL_HEADING = "/^(?=.*\\b(?:BILL|bill) \\d{4}$)(?:[\\p{Lu}\\d\\s,’'()\\-–&.]|bill)+$/u";
+
+    /**
+     * The date a bill was committed, printed under its heading in the supplement.
+     * A heading repeated for a later day's continuation has no such line.
+     */
+    private const COMMITTED = '/^Committed\s+(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s+(\d{1,2}\s+[A-Z][a-z]+\s+\d{4})$/u';
 
     private const LOOKBEHIND = 12;
 
@@ -54,6 +61,7 @@ class ProceedingsParser
         $divisions = [];
         $sittingNumber = null;
         $sittingDate = null;
+        $committedDate = null;
         $sequence = 0;
         $item = null;
         $header = null;
@@ -70,6 +78,7 @@ class ProceedingsParser
                     $sittingNumber = $number;
                     $sittingDate = CarbonImmutable::createFromFormat('!j F Y', $match[2]) ?: null;
                     $sequence = 0;
+                    $committedDate = null;
                     $item = null;
                 }
 
@@ -82,7 +91,7 @@ class ProceedingsParser
                 }
 
                 $header = $sittingNumber !== null && $sittingDate !== null
-                    ? $this->header($paragraphs, $index, $match[1], $match[2], $sittingNumber, $sittingDate, ++$sequence, $item)
+                    ? $this->header($paragraphs, $index, $match[1], $match[2], $sittingNumber, $committedDate ?? $sittingDate, ++$sequence, $item)
                     : null;
                 $side = null;
                 $tallies = ['ayes' => 0, 'noes' => 0];
@@ -96,7 +105,10 @@ class ProceedingsParser
                 if (preg_match(self::ITEM_HEADING, $paragraph, $match)) {
                     $item = ['number' => (int) $match[1], 'title' => $match[2], 'index' => $index];
                 } elseif (preg_match(self::BILL_HEADING, $paragraph)) {
-                    $item = ['number' => null, 'title' => $paragraph, 'index' => $index];
+                    $item = ['number' => null, 'title' => mb_strtoupper($paragraph), 'index' => $index];
+                    $committedDate = null;
+                } elseif (preg_match(self::COMMITTED, $paragraph, $match)) {
+                    $committedDate = CarbonImmutable::createFromFormat('!j F Y', $match[1]) ?: null;
                 }
 
                 continue;
