@@ -1380,5 +1380,21 @@ Alpine.data('menu', () => ({
     },
 }));
 
+/**
+ * Opens the collapsed answer a link points to, such as
+ * /methodology#why-so-few, so a shared link shows the answer, not just the
+ * question.
+ */
+function openLinkedAnswer() {
+    const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+
+    if (target instanceof HTMLDetailsElement) {
+        target.open = true;
+    }
+}
+
+openLinkedAnswer();
+window.addEventListener('hashchange', openLinkedAnswer);
+
 window.Alpine = Alpine;
 Alpine.start();

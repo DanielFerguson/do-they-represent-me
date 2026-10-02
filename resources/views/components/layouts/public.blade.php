@@ -10,7 +10,15 @@
     // Set on the pages that count visits. Left empty on previews, the contact
     // form and error pages, which never load analytics.
     'pageType' => null,
+    // Structured data for search engines: the page's schema.org type, the
+    // pages above it as [['name' => ..., 'url' => ...]], and any extra
+    // properties, such as an FAQ's questions.
+    'schemaType' => 'WebPage',
+    'breadcrumbs' => [],
+    'structuredData' => [],
 ])
+
+@use('App\Support\StructuredData')
 
 @php
     $primaryLinks = [
@@ -27,6 +35,8 @@
         ['label' => 'Privacy', 'route' => 'privacy'],
     ];
     $recordsUpTo = $showRecordsDate ? $latestSittingDate() : null;
+    $shareImageUrl = str_starts_with($shareImage, 'http') ? $shareImage : asset($shareImage);
+    $isIndexable = ! $noindex && $canonical;
 @endphp
 
 <!DOCTYPE html>
@@ -52,11 +62,15 @@
         <meta property="og:title" content="{{ $title ?? 'Do They Represent Me?' }}">
         <meta property="og:description" content="{{ $description }}">
         <meta property="og:url" content="{{ url()->current() }}">
-        <meta property="og:image" content="{{ str_starts_with($shareImage, 'http') ? $shareImage : asset($shareImage) }}">
+        <meta property="og:image" content="{{ $shareImageUrl }}">
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="630">
         <meta property="og:image:alt" content="{{ $shareImageAlt }}">
         <meta name="twitter:card" content="summary_large_image">
+
+        @if ($isIndexable)
+            <script type="application/ld+json">{!! StructuredData::encode(StructuredData::graph($schemaType, $title ?? 'Do They Represent Me?', $description, url()->current(), $shareImageUrl, $breadcrumbs, $structuredData)) !!}</script>
+        @endif
 
         <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="32x32">
         <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
