@@ -38,7 +38,7 @@ class InfoPagesController extends Controller
                 ->whereIn('short_name', self::BALANCED_PARTIES)
                 ->withCount(['policyAgreements as agree_side_count' => fn (Builder $query) => $query
                     ->whereIn('category', [AgreementCategory::For3->value, AgreementCategory::For2->value, AgreementCategory::For1->value])
-                    ->whereHas('policy', fn (Builder $policy) => $policy->published())])
+                    ->whereIn('policy_id', Policy::query()->published()->select('id'))])
                 ->orderBy('display_name')
                 ->get(),
         ]);
