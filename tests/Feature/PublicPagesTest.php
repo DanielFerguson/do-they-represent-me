@@ -3,7 +3,9 @@
 use App\Domain\Localities\LocalityDirectory;
 use App\Domain\Stances\StanceSnapshots;
 use App\Models\Electorate;
+use App\Models\Party;
 use App\Models\Policy;
+use App\Models\PolicyAgreement;
 use Illuminate\Support\Facades\URL;
 
 it('renders the public pages', function (string $route, string $text) {
@@ -69,6 +71,37 @@ it('says plainly on the methodology page that the questions were drafted and giv
     $this->get(route('methodology'))
         ->assertSee('drafted with AI')
         ->assertSee('A final round of AI reviewers');
+});
+
+it('answers how many published questions put each balanced party on the agree side', function () {
+    [$levy, $logging] = Policy::factory()->published()->count(2)->create();
+    $inReview = Policy::factory()->create();
+    $labor = Party::factory()->create(['short_name' => 'ALP', 'display_name' => 'Labor']);
+    $greens = Party::factory()->create(['short_name' => 'GRN', 'display_name' => 'Greens']);
+    $crossbench = Party::factory()->create(['short_name' => 'LCV', 'display_name' => 'Legalise Cannabis']);
+    PolicyAgreement::factory()->for($levy)->for($labor, 'subject')->agreement(1.0)->create();
+    PolicyAgreement::factory()->for($logging)->for($labor, 'subject')->agreement(0.6)->create();
+    PolicyAgreement::factory()->for($inReview)->for($labor, 'subject')->agreement(1.0)->create();
+    PolicyAgreement::factory()->for($levy)->for($greens, 'subject')->agreement(0.59)->create();
+    PolicyAgreement::factory()->for($logging)->for($greens, 'subject')->agreement(0.95)->create();
+    PolicyAgreement::factory()->for($levy)->for($crossbench, 'subject')->agreement(1.0)->create();
+
+    $response = $this->get(route('methodology'));
+
+    $response
+        ->assertSee('Why only 2 questions?')
+        ->assertSee('Of the 2 questions, the “agree” side includes Greens 1 and Labor 2.')
+        ->assertDontSee('Legalise Cannabis');
+});
+
+it('leaves the party figures out of the common questions until questions are published', function () {
+    Policy::factory()->create();
+
+    $response = $this->get(route('methodology'));
+
+    $response
+        ->assertSee('Why so few questions?')
+        ->assertDontSee('side includes');
 });
 
 it('marks the prototype data as sample data', function (string $route) {

@@ -6,6 +6,7 @@
         'match' => "How you're matched",
         'not-counted' => "What isn't counted",
         'check' => 'Check our work',
+        'faq' => 'Common questions',
     ];
     $labels = [
         'Consistently for · 95%+',
@@ -25,9 +26,100 @@
         'Votes up to' => $dataAsOf?->format('j F Y'),
         'Questions' => $publishedPolicies > 0 ? (string) $publishedPolicies : null,
     ]);
+
+    $link = fn (string $url, string $text): string => '<a href="'.e($url).'">'.e($text).'</a>';
+    $section = fn (string $id, string $text): string => $link(route('methodology').'#'.$id, $text);
+    $questionsPhrase = $publishedPolicies.' '.Str::plural('question', $publishedPolicies);
+    $agreeSideFigures = $publishedPolicies > 0 && $agreeSides->isNotEmpty()
+        ? ' Of the '.$questionsPhrase.', the “agree” side includes '.e($agreeSides->map(fn ($party) => $party->display_name.' '.$party->agree_side_count)->join(', ', ' and ')).'.'
+        : '';
+
+    // Short answers to the concerns people are likely to have. The same text
+    // is the page's FAQ for search engines, so the two can never differ.
+    $commonQuestions = [
+        'Bias and trust' => [
+            'who-chose' => [
+                'question' => 'Who chose these questions?',
+                'answer' => "<p>Not Dan Ferguson, who built the site. Like anyone, he has political views, so he didn't choose or word the questions himself. AI drafted them by following written rules: start from every bill and motion where the main parties voted differently, score each one on public interest, clarity and strength of record, then balance the set across topics and parties.</p>"
+                    ."<p>AI reviewers arguing for Labor, the Coalition, the Greens and the crossbench then challenged every question. A plain-language reader checked that it made sense, and a fact-checker checked every vote against the official record. Those reviewers made the final call. See ".$section('questions', 'how the questions were chosen').'.</p>',
+            ],
+            'why-ai' => [
+                'question' => "Why use AI? Doesn't AI have biases too?",
+                'answer' => "<p>Yes, AI has leanings too. But an AI working to written rules can be checked against those rules, challenged from every side and re-run, which is hard to do with one person's judgement.</p>"
+                    ."<p>AI chose the questions and linked each one to the votes that answer it. From there, every party's and MP's position comes from the official record by a fixed formula, the same for everyone. See ".$section('positions', "how a party's position is worked out").'.</p>',
+            ],
+            'is-it-slanted' => [
+                'question' => 'My party seems to come out badly. Is the quiz slanted?',
+                'answer' => '<p>The questions were chosen so that no party is on the “agree” side of every question, or of none.'.$agreeSideFigures.' Some questions ask about keeping a law and others about changing one. If a result surprises you, '.$link(route('policies.index'), 'open that question').' to see each vote behind it.</p>',
+            ],
+            'how-to-vote' => [
+                'question' => 'Does this site tell me how to vote?',
+                'answer' => "<p>No. It shows how parties and MPs voted on the questions you choose to answer. It doesn't recommend anyone, and it isn't affiliated with any party, candidate or the Parliament of Victoria. Parties are listed A–Z unless you've asked for a ranking.</p>",
+            ],
+        ],
+        "What's covered" => [
+            'why-so-few' => [
+                'question' => $publishedPolicies > 0 ? 'Why only '.$questionsPhrase.'?' : 'Why so few questions?',
+                'answer' => '<p>A question needs three things: a recorded vote in this Parliament, the main parties voting differently, and a way to ask it as one fair yes-or-no question. Many bills pass without a recorded vote, and most votes are on amendments to individual clauses.</p>'
+                    .'<p>The rules also preferred fewer questions with strong evidence over many with weak evidence, spread across 11 topic areas. Questions with too little voting record were dropped.</p>',
+            ],
+            'missing-issue' => [
+                'question' => "Why isn't my issue in the quiz?",
+                'answer' => '<p>Usually because Parliament never voted on it in a way that answers a clear question. For example:</p>'
+                    .'<ul>'
+                    .'<li>Legalising cannabis: the only vote was on holding a plebiscite.</li>'
+                    .'<li>Rent caps: the only vote was on whether a bill could be introduced.</li>'
+                    .'<li>A state debt limit, and regulating supermarket prices: one motion each, which is too little to show a position.</li>'
+                    .'<li>Firearms: one vote, on a bill that bundled many separate changes.</li>'
+                    .'</ul>'
+                    .'<p>Many government decisions are also made without any vote in Parliament.</p>',
+            ],
+            'since-2022' => [
+                'question' => 'Why only votes since December 2022?',
+                'answer' => '<p>The site covers the current Parliament, the 60th, elected in November 2022: its MPs and their record over nearly four years. The government has been in office since 2014, but many MPs from earlier Parliaments have left, and parties may have changed their positions since. Adding earlier votes would also mean checking a second, older set of records.</p>',
+            ],
+            'missing-party' => [
+                'question' => "Why isn't my party or candidate shown?",
+                'answer' => "<p>Only parties with MPs in this Parliament, and those MPs, have a voting record. A new party, or a candidate who hasn't been an MP, has no record here, so we can't match you with them. That says nothing about their policies, so check their own platform. Independents are compared one by one.</p>",
+            ],
+        ],
+        'Reading your results' => [
+            'changed-position' => [
+                'question' => 'What if a party has changed its position?',
+                'answer' => "<p>Results reflect how parties voted in this Parliament, not their promises for 2026. A party may have changed its view since, or promised something different. Where a party voted different ways on a question, for example differently in each house, its result can show as Mixed. Check each party's own policies alongside your results.</p>",
+            ],
+            'reversing-a-law' => [
+                'question' => 'Why do some questions ask about reversing a law?',
+                'answer' => "<p>So that “agree” doesn't always mean siding with the government. Some questions ask whether to keep a law, and others whether to reverse one. When a question asks about reversing a law, a vote to pass that law counts as “disagree”.</p>",
+            ],
+            'no-vote' => [
+                'question' => 'Why does my MP have no vote on some questions?',
+                'answer' => "<p>Some questions were voted on only in the Legislative Council, the upper house, so members of the Legislative Assembly show “No vote recorded”. “Did not vote” means the MP was absent. Victoria doesn't record pairs, so an absence may be illness, a pair or a choice. We show it, but never count it for or against anyone. See ".$section('not-counted', "what isn't counted").'.</p>',
+            ],
+            'note-not-figure' => [
+                'question' => 'Why is there a note instead of a figure?',
+                'answer' => '<p>Sometimes reviewers found that a figure would misstate a position, for example for a party that voted for a bill while saying it opposed the policy. Then we show their note instead, and leave that party or MP out of the match on that question.</p>',
+            ],
+        ],
+        'Reporting and changes' => [
+            'report-unfair' => [
+                'question' => 'I think a question is unfair. What can I do?',
+                'answer' => '<p>'.$link(route('contact', ['topic' => 'correction']), 'Tell us').', with a link to the record if you can. Every report is checked against the official record, whoever sends it, including MPs, parties and candidates. Corrections are made openly and usually take a few days.</p>',
+            ],
+            'will-it-change' => [
+                'question' => 'Will the questions change before the election?',
+                'answer' => "<p>No new votes will be added. Parliament isn't expected to sit again before the election, so the record is final. Questions can still be corrected if a report shows an error. Every published version of the data is kept, so changes can be checked.</p>",
+            ],
+        ],
+    ];
+    $faqQuestions = collect($commonQuestions)->flatten(1)->map(fn (array $item): array => [
+        '@type' => 'Question',
+        'name' => $item['question'],
+        'acceptedAnswer' => ['@type' => 'Answer', 'text' => $item['answer']],
+    ])->values()->all();
 @endphp
 
-<x-layouts.public page-type="info" share-image="images/share-methodology.png" title="Methodology" description="How Do They Represent Me? turns the Parliament of Victoria's voting records into quiz results.">
+<x-layouts.public page-type="info" :schema-type="['WebPage', 'FAQPage']" :structured-data="['mainEntity' => $faqQuestions]" share-image="images/share-methodology.png" title="Methodology" description="How Do They Represent Me? turns the Parliament of Victoria's voting records into quiz results.">
     <div class="mx-auto flex max-w-page flex-col px-5 pb-12 pt-8 lg:flex-row lg:items-start lg:gap-24 lg:pb-24 lg:pt-18">
         <div class="flex min-w-0 flex-col gap-6 lg:w-[704px] lg:shrink-0 lg:gap-12">
             <x-page-header eyebrow="Methodology" title="How we got the answers">
@@ -51,7 +143,7 @@
             <x-info-section id="questions" number="02" title="How the questions were chosen">
                 <x-prose>
                     <p>
-                        By a written, rule-based process, not anyone's opinion of which policies are good. The site's founder has political views of his own, so the questions were drafted with AI following that process, and every step was recorded so it can be checked. AI has leanings too, but its work is easier to monitor and verify than one person's judgement.
+                        By a written, rule-based process, not anyone's opinion of which policies are good. The site's founder has political views of his own, so the questions were drafted with AI following that process. AI has leanings too, but its work is easier to monitor and verify than one person's judgement.
                     </p>
                 </x-prose>
                 <dl class="flex flex-col">
@@ -147,6 +239,28 @@
                     <a href="{{ config('site.repository_url') }}" rel="noopener" class="link">Source code on GitHub ↗</a>
                     <a href="{{ route('contact', ['topic' => 'correction']) }}" class="link">Report a problem →</a>
                 </p>
+            </x-info-section>
+
+            <x-info-section id="faq" number="07" title="Common questions">
+                <x-prose>
+                    <p>Short answers to common concerns, with links to the detail above.</p>
+                </x-prose>
+                @foreach ($commonQuestions as $group => $questions)
+                    <div class="flex flex-col gap-1.5 pt-2 lg:gap-2">
+                        <h3 class="eyebrow">{{ $group }}</h3>
+                        <div class="flex flex-col">
+                            @foreach ($questions as $id => $item)
+                                <details id="{{ $id }}" class="group scroll-mt-6 border-t border-rule last:border-b">
+                                    <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 py-3 text-[15px] font-medium leading-[21px] [&::-webkit-details-marker]:hidden">
+                                        {{ $item['question'] }}
+                                        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" class="shrink-0 group-open:rotate-180"><path d="M2.5 4L6 7.5L9.5 4" fill="none" stroke="currentColor" stroke-width="1.5" /></svg>
+                                    </summary>
+                                    <x-prose class="pb-4">{!! $item['answer'] !!}</x-prose>
+                                </details>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
             </x-info-section>
         </div>
 

@@ -3,7 +3,7 @@
     $errorIcon = '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" class="shrink-0"><circle cx="7" cy="7" r="6" fill="none" stroke="currentColor" stroke-width="1.5" /><path d="M7 4v3.5M7 9.5v.5" fill="none" stroke="currentColor" stroke-width="1.5" /></svg>';
 @endphp
 
-<x-layouts.public title="Contact" description="Report a mistake, ask a question or get in touch for media.">
+<x-layouts.public schema-type="ContactPage" title="Contact" description="Report a mistake, ask a question or get in touch for media.">
     <div class="mx-auto flex max-w-page flex-col gap-24 px-5 pb-12 pt-8 lg:flex-row lg:items-start lg:pb-24 lg:pt-18">
         <div class="flex min-w-0 flex-col gap-8 lg:w-[704px] lg:shrink-0 lg:gap-12">
             @if (session('sent'))
