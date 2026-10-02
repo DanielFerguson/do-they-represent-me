@@ -16,8 +16,8 @@
 @endphp
 
 <x-layouts.public page-type="info" title="Privacy" description="What Do They Represent Me? does and doesn't collect.">
-    <div class="mx-auto flex max-w-page flex-col px-5 pb-12 pt-8 lg:flex-row lg:items-start lg:gap-24 lg:pb-24 lg:pt-18">
-        <div class="flex min-w-0 flex-col gap-6 lg:w-[704px] lg:shrink-0 lg:gap-12">
+    <div class="mx-auto flex max-w-page flex-col px-5 pb-12 pt-8 lg:flex-row lg:items-start lg:justify-between lg:gap-12 lg:pb-24 lg:pt-18">
+        <div class="flex min-w-0 flex-col gap-6 lg:max-w-[704px] lg:flex-1 lg:gap-12">
             <x-page-header eyebrow="Privacy" title="Your answers are yours">
                 We built this so you can use it without telling us anything. Here's exactly what happens to your information. Last updated 2 October 2026.
             </x-page-header>
