@@ -65,6 +65,15 @@ it('confirms visit counting is on when a key is set', function () {
         ->assertSuccessful();
 });
 
+it('flags a contact form with no spam check without failing the check', function () {
+    readyToLaunch();
+    config(['services.turnstile.secret_key' => null]);
+
+    $this->artisan('vic:launch-check')
+        ->expectsOutputToContain('TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY are not both set')
+        ->assertSuccessful();
+});
+
 it('fails, naming the problem, when a soft-launch condition is not met', function (Closure $break, string $problem) {
     readyToLaunch();
     $break();

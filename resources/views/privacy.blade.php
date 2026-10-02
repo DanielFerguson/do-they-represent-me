@@ -19,7 +19,7 @@
     <div class="mx-auto flex max-w-page flex-col px-5 pb-12 pt-8 lg:flex-row lg:items-start lg:gap-24 lg:pb-24 lg:pt-18">
         <div class="flex min-w-0 flex-col gap-6 lg:w-[704px] lg:shrink-0 lg:gap-12">
             <x-page-header eyebrow="Privacy" title="Your answers are yours">
-                We built this so you can use it without telling us anything. Here's exactly what happens to your information. Last updated 30 September 2026.
+                We built this so you can use it without telling us anything. Here's exactly what happens to your information. Last updated 2 October 2026.
             </x-page-header>
 
             <x-on-this-page :sections="$sections" disclosure />
@@ -92,6 +92,7 @@
                     <x-fact term="Why" wide>Only to reply and to fix mistakes. Never for marketing, never shared or sold.</x-fact>
                     <x-fact term="Who sees it" wide>Only Dan Ferguson, who runs the site. A copy is emailed to him through his own email provider, Namecheap Private Email.</x-fact>
                     <x-fact term="How long" wide>Deleted automatically 12 months after you send it, or sooner if you ask.</x-fact>
+                    <x-fact term="Spam check" wide>The form uses Cloudflare Turnstile to tell people from bots. Your browser loads it from Cloudflare, which sees your IP address and some details about your browser, but never your message. Cloudflare doesn't use it for advertising.</x-fact>
                 </dl>
             </x-info-section>
 

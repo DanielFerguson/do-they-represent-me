@@ -5,7 +5,12 @@ use App\Models\ContactMessage;
 use App\Models\Electorate;
 use App\Models\Policy;
 use App\Notifications\ContactMessageReceived;
+use App\Rules\Turnstile;
+use App\Support\Csp\ContactPolicy;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Request;
 use Illuminate\Notifications\AnonymousNotifiable;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 
 function validMessage(array $overrides = []): array
@@ -138,3 +143,52 @@ it('deletes messages after a year', function () {
     expect(ContactMessage::query()->pluck('id')->all())->toBe([$recent->id])
         ->and($old->fresh())->toBeNull();
 });
+
+function enableTurnstile(): void
+{
+    config(['services.turnstile.site_key' => 'site-key', 'services.turnstile.secret_key' => 'secret-key']);
+    Http::preventStrayRequests();
+}
+
+it('shows the spam check, and lets Cloudflare load it on this page only, when the keys are set', function () {
+    enableTurnstile();
+
+    $response = $this->get(route('contact'))->assertOk()->assertSee('data-sitekey="site-key"', escape: false);
+
+    expect($response->headers->get('Content-Security-Policy'))
+        ->toContain('script-src \'self\' '.ContactPolicy::TURNSTILE_ORIGIN)
+        ->toContain('frame-src '.ContactPolicy::TURNSTILE_ORIGIN)
+        ->and($this->get(route('about'))->headers->get('Content-Security-Policy'))->not->toContain(ContactPolicy::TURNSTILE_ORIGIN);
+});
+
+it('leaves out the spam check when the keys are not set', function () {
+    config(['services.turnstile.site_key' => null, 'services.turnstile.secret_key' => null]);
+
+    $this->get(route('contact'))->assertOk()->assertDontSee('cf-turnstile');
+});
+
+it('stores the message when Cloudflare accepts the spam check', function () {
+    enableTurnstile();
+    Http::fake([Turnstile::VERIFY_URL => Http::response(['success' => true])]);
+
+    $this->post(route('contact.store'), validMessage(['turnstile' => 'good-token']), ['REMOTE_ADDR' => '203.0.113.9'])
+        ->assertRedirect(route('contact'))
+        ->assertSessionHasNoErrors();
+
+    expect(ContactMessage::query()->count())->toBe(1);
+    Http::assertSent(fn (Request $request): bool => $request['secret'] === 'secret-key' && $request['response'] === 'good-token' && $request['remoteip'] === '203.0.113.9');
+});
+
+it('rejects the message when the spam check fails or is missing', function (?string $token, Closure $cloudflare) {
+    enableTurnstile();
+    $cloudflare();
+
+    $this->post(route('contact.store'), validMessage(['turnstile' => $token]))
+        ->assertSessionHasErrors(['turnstile' => "We couldn't confirm you're a person. Wait a moment for the check to finish, then send again."]);
+
+    expect(ContactMessage::query()->count())->toBe(0);
+})->with([
+    'a token Cloudflare rejects' => ['bad-token', fn () => Http::fake([Turnstile::VERIFY_URL => Http::response(['success' => false, 'error-codes' => ['invalid-input-response']])])],
+    'Cloudflare is unreachable' => ['good-token', fn () => Http::fake([Turnstile::VERIFY_URL => fn () => throw new ConnectionException('timed out')])],
+    'no token' => [null, fn () => null],
+]);

@@ -48,6 +48,13 @@ return [
         'ingest_per_minute' => 1200,
     ],
 
+    // Cloudflare Turnstile on the contact form, to stop spam. Leave the keys
+    // empty to turn the check off, as in local development and tests.
+    'turnstile' => [
+        'site_key' => env('TURNSTILE_SITE_KEY'),
+        'secret_key' => env('TURNSTILE_SECRET_KEY'),
+    ],
+
     'parliament_vic' => [
         'base_url' => 'https://www.parliament.vic.gov.au',
         'allowed_hosts' => ['www.parliament.vic.gov.au', 'parliament.vic.gov.au'],

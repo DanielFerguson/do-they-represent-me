@@ -3,13 +3,15 @@
 namespace App\Http\Requests;
 
 use App\Enums\ContactTopic;
+use App\Rules\Turnstile;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
  * A message from the public contact form. Anyone may send one; the form is
- * rate limited, and a hidden "website" field catches simple bots.
+ * rate limited, a hidden "website" field catches simple bots, and, when its
+ * keys are set, Cloudflare Turnstile catches the rest.
  */
 class StoreContactMessageRequest extends FormRequest
 {
@@ -31,6 +33,7 @@ class StoreContactMessageRequest extends FormRequest
             'policy' => ['nullable', 'string', 'max:255'],
             'district' => ['nullable', 'string', 'max:255'],
             'website' => ['nullable', 'string'],
+            ...Turnstile::isEnabled() ? ['turnstile' => ['bail', 'required', new Turnstile($this->ip())]] : [],
         ];
     }
 
@@ -47,6 +50,7 @@ class StoreContactMessageRequest extends FormRequest
             'message.min' => 'Write at least 10 characters.',
             'message.max' => 'Keep your message under 5,000 characters.',
             'name.max' => 'Keep your name under 100 characters.',
+            'turnstile.required' => "We couldn't confirm you're a person. Wait a moment for the check to finish, then send again.",
         ];
     }
 

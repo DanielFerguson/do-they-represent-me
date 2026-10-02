@@ -10,6 +10,7 @@ use App\Models\Electorate;
 use App\Models\Policy;
 use App\Models\PolicyImport;
 use App\Models\ProceedingsDocument;
+use App\Rules\Turnstile;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -42,6 +43,7 @@ class LaunchCheck extends Command
         // Worth knowing, but not a reason to hold a launch.
         $notices = [
             'Visit counts are switched on' => filled(config('services.posthog.key')) ? [] : ['POSTHOG_KEY is not set, so no visits are counted'],
+            'The contact form has a spam check' => Turnstile::isEnabled() ? [] : ['TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY are not both set'],
         ];
 
         $failed = 0;

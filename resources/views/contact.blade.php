@@ -106,6 +106,17 @@
                         <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
                     </div>
 
+                    @if (\App\Rules\Turnstile::isEnabled())
+                        {{-- Cloudflare's spam check. It stays hidden unless it needs the visitor to click. --}}
+                        <div class="flex flex-col gap-1.5">
+                            @error('turnstile')
+                                <p id="turnstile-error" class="flex items-center gap-1.5 text-small font-medium">{!! $errorIcon !!} {{ $message }}</p>
+                            @enderror
+                            <div id="turnstile" class="cf-turnstile" data-sitekey="{{ config('services.turnstile.site_key') }}" data-response-field-name="turnstile" data-appearance="interaction-only" data-theme="auto" data-size="flexible"></div>
+                        </div>
+                        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+                    @endif
+
                     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
                         <button type="submit" class="h-12 rounded-md bg-ink px-7 text-[15px] font-medium text-ground hover:opacity-85">Send message</button>
                         <p class="text-[13px] leading-[19px] text-ink-muted">We only use your email to reply. Messages are deleted after 12 months. <a href="{{ route('privacy') }}" class="link">Privacy</a></p>
