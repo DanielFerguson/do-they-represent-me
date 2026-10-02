@@ -4,8 +4,8 @@
 @endphp
 
 <x-layouts.public schema-type="ContactPage" title="Contact" description="Report a mistake, ask a question or get in touch for media.">
-    <div class="mx-auto flex max-w-page flex-col gap-24 px-5 pb-12 pt-8 lg:flex-row lg:items-start lg:pb-24 lg:pt-18">
-        <div class="flex min-w-0 flex-col gap-8 lg:w-[704px] lg:shrink-0 lg:gap-12">
+    <div class="mx-auto flex max-w-page flex-col gap-24 px-5 pb-12 pt-8 lg:flex-row lg:items-start lg:justify-between lg:gap-12 lg:pb-24 lg:pt-18">
+        <div class="flex min-w-0 flex-col gap-8 lg:max-w-[704px] lg:flex-1 lg:gap-12">
             @if (session('sent'))
                 <div class="flex flex-col gap-5 pt-6">
                     <div class="flex size-12 items-center justify-center rounded-full bg-ink text-ground" aria-hidden="true">

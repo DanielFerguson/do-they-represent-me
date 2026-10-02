@@ -16,8 +16,8 @@
             <x-beta-notice />
         @endif
 
-        <div class="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-24">
-            <div class="flex min-w-0 flex-col lg:w-[704px] lg:shrink-0">
+        <div class="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-12">
+            <div class="flex min-w-0 flex-col lg:max-w-[704px] lg:flex-1">
                 <h1 class="eyebrow" x-text="eyebrow">Your results</h1>
 
                 <div x-show="isShared && showsResults" x-cloak class="mt-4 flex flex-col gap-3 rounded-md border-2 border-ink bg-surface p-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6 lg:p-5">

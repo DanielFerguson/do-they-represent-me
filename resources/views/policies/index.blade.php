@@ -4,8 +4,8 @@
 @endphp
 
 <x-layouts.public page-type="policies_index" schema-type="CollectionPage" share-image="images/share-questions.png" title="Questions">
-    <div class="mx-auto flex max-w-page flex-col gap-6 px-5 pb-12 pt-5 lg:flex-row lg:items-start lg:gap-24 lg:pb-24 lg:pt-18">
-        <div class="flex min-w-0 flex-col gap-6 lg:w-[704px] lg:shrink-0 lg:gap-12">
+    <div class="mx-auto flex max-w-page flex-col gap-6 px-5 pb-12 pt-5 lg:flex-row lg:items-start lg:justify-between lg:gap-12 lg:pb-24 lg:pt-18">
+        <div class="flex min-w-0 flex-col gap-6 lg:max-w-[704px] lg:flex-1 lg:gap-12">
             <header class="flex flex-col gap-2.5 lg:gap-4">
                 @if ($questionCount > 0)
                     <p class="eyebrow">{{ $questionCount }} {{ Str::plural('question', $questionCount) }} · {{ $topics->count() }} {{ Str::plural('topic', $topics->count()) }}</p>

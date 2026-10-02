@@ -55,7 +55,8 @@
     --tracking-label: 0.06em;
 
     --container-reading: 640px;
-    --container-page: 1120px;
+    /* The design's 1120px page grid plus the px-5 gutter on each side. */
+    --container-page: 1160px;
 }
 
 /* Dark mode redefines the same tokens, so views never need dark: variants. */

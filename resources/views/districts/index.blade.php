@@ -1,8 +1,8 @@
 @php($districtCount = $regions->sum(fn ($region) => $region->districts->count()))
 
 <x-layouts.public page-type="districts_index" schema-type="CollectionPage" share-image="images/share-district.png" title="Districts" description="Find your Victorian state electoral district and see how your MPs voted.">
-    <div class="mx-auto flex max-w-page flex-col gap-6 px-5 pb-12 pt-5 lg:flex-row lg:items-start lg:gap-24 lg:pb-24 lg:pt-18">
-        <div class="flex min-w-0 flex-col gap-6 lg:w-[704px] lg:shrink-0 lg:gap-12">
+    <div class="mx-auto flex max-w-page flex-col gap-6 px-5 pb-12 pt-5 lg:flex-row lg:items-start lg:justify-between lg:gap-12 lg:pb-24 lg:pt-18">
+        <div class="flex min-w-0 flex-col gap-6 lg:max-w-[704px] lg:flex-1 lg:gap-12">
             <header class="flex flex-col gap-2.5 lg:gap-4">
                 @if ($districtCount > 0)
                     <p class="eyebrow">{{ $districtCount }} {{ Str::plural('district', $districtCount) }} · {{ $regions->count() }} {{ Str::plural('region', $regions->count()) }}</p>

@@ -14,8 +14,8 @@
             <x-beta-notice />
         @endif
 
-        <div class="flex flex-col gap-24 lg:flex-row lg:items-start">
-            <div class="flex min-w-0 flex-col gap-10 lg:w-[704px] lg:shrink-0">
+        <div class="flex flex-col gap-24 lg:flex-row lg:items-start lg:justify-between lg:gap-12">
+            <div class="flex min-w-0 flex-col gap-10 lg:max-w-[704px] lg:flex-1">
                 <div x-show="hasInvite" x-cloak role="note" class="flex items-start justify-between gap-4 rounded-md bg-surface px-4 py-4 lg:px-6 lg:py-5">
                     <div class="flex flex-col gap-1">
                         <p class="eyebrow" x-text="inviteEyebrow"></p>

@@ -6,8 +6,8 @@
 @endphp
 
 <x-layouts.public page-type="district" :breadcrumbs="[['name' => 'Districts', 'url' => route('districts.index')]]" :share-image="$shareImageUrl" :share-image-alt="$shareImageAlt" :title="$district->name.' District'" :description="'The MLA and MLCs for '.$district->name.' District, and how they voted in the Parliament of Victoria.'">
-    <div class="mx-auto flex max-w-page flex-col gap-6 px-5 pb-12 pt-5 lg:flex-row lg:items-start lg:gap-24 lg:pb-24 lg:pt-18">
-        <div class="flex min-w-0 flex-col gap-6 lg:w-[704px] lg:shrink-0 lg:gap-12">
+    <div class="mx-auto flex max-w-page flex-col gap-6 px-5 pb-12 pt-5 lg:flex-row lg:items-start lg:justify-between lg:gap-12 lg:pb-24 lg:pt-18">
+        <div class="flex min-w-0 flex-col gap-6 lg:max-w-[704px] lg:flex-1 lg:gap-12">
             <header class="flex flex-col gap-2.5 lg:gap-4">
                 <nav aria-label="Breadcrumb" class="flex items-baseline gap-1.5 text-[13px] leading-4 text-ink-muted lg:gap-2 lg:text-small lg:leading-[18px]">
                     <a href="{{ route('districts.index') }}" class="link">Districts</a>

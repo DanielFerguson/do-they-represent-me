@@ -16,8 +16,8 @@
 @endphp
 
 <x-layouts.public page-type="info" schema-type="AboutPage" share-image="images/share-methodology.png" title="About and corrections" description="Who runs Do They Represent Me?, where the data comes from, and how to report a mistake.">
-    <div class="mx-auto flex max-w-page flex-col px-5 pb-12 pt-8 lg:flex-row lg:items-start lg:gap-24 lg:pb-24 lg:pt-18">
-        <div class="flex min-w-0 flex-col gap-6 lg:w-[704px] lg:shrink-0 lg:gap-12">
+    <div class="mx-auto flex max-w-page flex-col px-5 pb-12 pt-8 lg:flex-row lg:items-start lg:justify-between lg:gap-12 lg:pb-24 lg:pt-18">
+        <div class="flex min-w-0 flex-col gap-6 lg:max-w-[704px] lg:flex-1 lg:gap-12">
             <x-page-header eyebrow="About" title="A voting record you can check, not a pitch">
                 <em class="not-italic">Do They Represent Me?</em> shows how Victoria's parties and MPs actually voted in State Parliament, so you can compare their record with your own views before you vote on 28 November.
             </x-page-header>
