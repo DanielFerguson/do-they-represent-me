@@ -192,7 +192,7 @@ describe('buildCardLayout', () => {
         expect(text).toContain('60th Parliament (2022–2026)');
         expect(text).toContain('not with their promises for the 2026 election');
         expect(text).toContain('Voting records up to 3 November 2026.');
-        expect(text).toContain('Based on my 14 agree or disagree answers.');
+        expect(text).toContain('Based on my 14 yes or no answers.');
     });
 
     it('leaves the date out when there is none', () => {

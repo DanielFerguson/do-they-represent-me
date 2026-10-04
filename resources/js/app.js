@@ -30,6 +30,7 @@ import {
     scoreMembers,
     scoreParties,
     stanceText,
+    yesMeans,
 } from './quiz';
 import { RESULTS_TEXT, canShareFiles, canShareLink, channelLinks, districtText, inviteText, withName } from './share';
 
@@ -130,6 +131,10 @@ Alpine.data('quiz', () => ({
 
     get positionShort() {
         return `${this.index + 1} of ${this.total}`;
+    },
+
+    get yesMeans() {
+        return yesMeans(this.current?.agree_means);
     },
 
     /** True once any answer is saved; the intro then shrinks to a title line. */
@@ -265,7 +270,7 @@ Alpine.data('quiz', () => ({
             return;
         }
 
-        const actions = { a: 'agree', d: 'disagree', u: 'unsure', s: 'skip', ArrowLeft: 'back' };
+        const actions = { y: 'agree', n: 'disagree', u: 'unsure', s: 'skip', ArrowLeft: 'back' };
         const action = actions[event.key.length === 1 ? event.key.toLowerCase() : event.key];
 
         if (action) {
@@ -665,7 +670,7 @@ Alpine.data('results', () => ({
     },
 
     get basedOnText() {
-        return `Based on ${this.isShared ? (this.ownerName ? `${this.ownerName}'s` : 'their') : 'your'} ${this.comparable} agree or disagree answers.`;
+        return `Based on ${this.isShared ? (this.ownerName ? `${this.ownerName}'s` : 'their') : 'your'} ${this.comparable} yes or no answers.`;
     },
 
     get scopeText() {
@@ -749,8 +754,8 @@ Alpine.data('results', () => ({
 
     get compareSummary() {
         return this.compareShared
-            ? `Out of the ${this.compareShared} questions you both answered agree or disagree. Unsure and skipped questions aren't counted.`
-            : `You haven't both answered agree or disagree on enough of the same questions yet.`;
+            ? `Out of the ${this.compareShared} questions you both answered yes or no. Unsure and skipped questions aren't counted.`
+            : `You haven't both answered yes or no on enough of the same questions yet.`;
     },
 
     get agreementSegments() {

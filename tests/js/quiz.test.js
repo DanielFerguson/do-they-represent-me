@@ -16,6 +16,7 @@ import {
     sanitiseName,
     saveInvite,
     shareHash,
+    yesMeans,
 } from '../../resources/js/quiz.js';
 
 afterEach(() => {
@@ -93,6 +94,23 @@ describe('encodeAnswers and decodeAnswers', () => {
 
     it('does not treat inherited object keys as answers', () => {
         expect(encodeAnswers({ 1: 'toString', 2: 'constructor', 3: 'a' })).toBe('3a');
+    });
+});
+
+describe('yesMeans', () => {
+    it('drops the workbook\'s "Agree =" label, which the quiz shows as "Yes ="', () => {
+        expect(yesMeans('Agree = opposing the Short Stay Levy Bill 2024 (voting against it).')).toBe('opposing the Short Stay Levy Bill 2024 (voting against it).');
+        expect(yesMeans('  agree=supporting the bill')).toBe('supporting the bill');
+    });
+
+    it('leaves text without the label unchanged', () => {
+        expect(yesMeans('supporting the bill, as agreed = in committee')).toBe('supporting the bill, as agreed = in committee');
+    });
+
+    it('returns an empty string when there is no text', () => {
+        expect(yesMeans(null)).toBe('');
+        expect(yesMeans(undefined)).toBe('');
+        expect(yesMeans('Agree = ')).toBe('');
     });
 });
 
