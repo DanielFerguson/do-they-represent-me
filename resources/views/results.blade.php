@@ -40,7 +40,7 @@
                     <div class="mt-5 flex flex-col gap-5">
                         <h2 class="text-h1-mobile font-semibold tracking-display lg:text-h1">Answer a few more questions</h2>
                         <p class="text-[16px] leading-[25px] text-ink-muted">
-                            We need at least <span x-text="minimumAnswers"></span> agree or disagree answers to compare you fairly with each party. You've given <span x-text="comparable"></span>.
+                            We need at least <span x-text="minimumAnswers"></span> yes or no answers to compare you fairly with each party. You've given <span x-text="comparable"></span>.
                         </p>
                         <div class="flex flex-col gap-2">
                             <div class="flex gap-1" aria-hidden="true">
@@ -249,7 +249,7 @@
                         <h2 class="eyebrow border-b border-rule pb-3" x-text="answersHeading">Your answers</h2>
                         <dl class="text-small leading-[18px]">
                             <div class="flex h-10 items-center justify-between border-b border-rule">
-                                <dt>Agree or disagree</dt>
+                                <dt>Yes or no</dt>
                                 <dd class="font-semibold" x-text="comparable"></dd>
                             </div>
                             <div class="flex h-10 items-center justify-between border-b border-rule text-ink-muted">

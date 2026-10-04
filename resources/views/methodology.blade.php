@@ -18,7 +18,7 @@
         'Consistently against',
     ];
     $thresholds = [
-        ['figure' => '5', 'text' => 'agree or disagree answers needed before we show results'],
+        ['figure' => '5', 'text' => 'yes or no answers needed before we show results'],
         ['figure' => '3', 'text' => 'shared questions needed before a party is ranked'],
         ['figure' => 'A–Z', 'text' => "party order wherever a ranking isn't the point"],
     ];
@@ -31,7 +31,7 @@
     $section = fn (string $id, string $text): string => $link(route('methodology').'#'.$id, $text);
     $questionsPhrase = $publishedPolicies.' '.Str::plural('question', $publishedPolicies);
     $agreeSideFigures = $publishedPolicies > 0 && $agreeSides->isNotEmpty()
-        ? ' Of the '.$questionsPhrase.', the “agree” side includes '.e($agreeSides->map(fn ($party) => $party->display_name.' '.$party->agree_side_count)->join(', ', ' and ')).'.'
+        ? ' Of the '.$questionsPhrase.', the “yes” side includes '.e($agreeSides->map(fn ($party) => $party->display_name.' '.$party->agree_side_count)->join(', ', ' and ')).'.'
         : '';
 
     // Short answers to the concerns people are likely to have. The same text
@@ -50,7 +50,7 @@
             ],
             'is-it-slanted' => [
                 'question' => 'My party seems to come out badly. Is the quiz slanted?',
-                'answer' => '<p>The questions were chosen so that no party is on the “agree” side of every question, or of none.'.$agreeSideFigures.' Some questions ask about keeping a law and others about changing one. If a result surprises you, '.$link(route('policies.index'), 'open that question').' to see each vote behind it.</p>',
+                'answer' => '<p>The questions were chosen so that no party is on the “yes” side of every question, or of none.'.$agreeSideFigures.' Some questions ask about keeping a law and others about changing one. If a result surprises you, '.$link(route('policies.index'), 'open that question').' to see each vote behind it.</p>',
             ],
             'how-to-vote' => [
                 'question' => 'Does this site tell me how to vote?',
@@ -90,7 +90,7 @@
             ],
             'reversing-a-law' => [
                 'question' => 'Why do some questions ask about reversing a law?',
-                'answer' => "<p>So that “agree” doesn't always mean siding with the government. Some questions ask whether to keep a law, and others whether to reverse one. When a question asks about reversing a law, a vote to pass that law counts as “disagree”.</p>",
+                'answer' => "<p>So that “yes” doesn't always mean siding with the government. Some questions ask whether to keep a law, and others whether to reverse one. When a question asks about reversing a law, a vote to pass that law counts as a “no”.</p>",
             ],
             'no-vote' => [
                 'question' => 'Why does my MP have no vote on some questions?',
@@ -148,7 +148,7 @@
                 </x-prose>
                 <dl class="flex flex-col">
                     <x-fact term="Every contested vote">Bills and motions where the main parties split. Procedural business, motions about individual MPs and praise-or-censure motions are excluded.</x-fact>
-                    <x-fact term="Scored, then balanced">Rated on public interest, clarity and strength of record. Chosen so each major party is on the “agree” side of 35–65% of questions.</x-fact>
+                    <x-fact term="Scored, then balanced">Rated on public interest, clarity and strength of record. Chosen so each major party is on the “yes” side of 35–65% of questions.</x-fact>
                     <x-fact term="Plainly worded">One idea, 25 words or fewer, no party names, no loaded terms. Each vote's direction confirmed from the source.</x-fact>
                     <x-fact term="Reviewed from every side">AI reviewers argued from the view of each major party and the crossbench, and a plain-language reader checked the wording. A final round of AI reviewers made the publication call on 30 September 2026: one for each of Labor, the Coalition, the Greens and the crossbench, a plain-language reader and a fact-checker, who checked every vote's direction against the official record. Where they disagreed, a question with too little voting record was dropped and a factual error was always fixed. Nobody's view of which policies are good was part of it. Anyone can report a problem, and every report is checked against the record.</x-fact>
                 </dl>
@@ -162,7 +162,7 @@
             <x-info-section id="positions" number="03" title="How a party's position is worked out">
                 <x-prose>
                     <p>
-                        On each vote, a party takes the side most of its MPs voted for, using each MP's party on the day. Across a question's linked votes, we count how often that side matched “agree”. Second and third readings, the votes that pass or reject a bill, count five times as much as other votes.
+                        On each vote, a party takes the side most of its MPs voted for, using each MP's party on the day. Across a question's linked votes, we count how often that side matched “yes”. Second and third readings, the votes that pass or reject a bill, count five times as much as other votes.
                     </p>
                 </x-prose>
                 <ul class="flex flex-wrap gap-1.5 lg:gap-2" aria-label="How agreement is labelled">
@@ -178,7 +178,7 @@
             <x-info-section id="match" number="04" title="How you're matched">
                 <x-prose>
                     <p>
-                        In your browser, not on our servers. For each question you agree or disagree with, we compare your answer with each party's position, then average across your answers. “Unsure” and skipped questions aren't counted.
+                        In your browser, not on our servers. For each question you answer yes or no, we compare your answer with each party's position, then average across your answers. “Unsure” and skipped questions aren't counted.
                     </p>
                 </x-prose>
                 <ul class="flex gap-2 lg:gap-3">

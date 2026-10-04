@@ -14,9 +14,14 @@ export const MAX_NAME_LENGTH = 24;
 /** The most people one link can compare, counting the friends and not the owner. */
 const MAX_FRIENDS = 8;
 
+/**
+ * The codes are still "a" and "d" (agree and disagree, the scoring's terms),
+ * so answers saved before the quiz said Yes and No, and links shared then,
+ * keep working.
+ */
 export const ANSWERS = {
-    a: { label: 'Agree', value: 1 },
-    d: { label: 'Disagree', value: 0 },
+    a: { label: 'Yes', value: 1 },
+    d: { label: 'No', value: 0 },
     u: { label: 'Unsure', value: null },
     s: { label: 'Skipped', value: null },
 };
@@ -43,6 +48,14 @@ export function decodeAnswers(encoded) {
     }
 
     return answers;
+}
+
+/**
+ * What a "yes" answer lines up with, from the workbook's "Agree" means text,
+ * which starts with its own "Agree =" label.
+ */
+export function yesMeans(agreeMeans) {
+    return String(agreeMeans ?? '').replace(/^\s*agree\s*=\s*/i, '').trim();
 }
 
 export function answersFromHash(hash) {
@@ -174,7 +187,7 @@ export function stanceLabel(agreement) {
 /**
  * How closely one party or MP matches the user's answers.
  *
- * For every question answered Agree (1) or Disagree (0) where they have a
+ * For every question answered Yes (1) or No (0) where they have a
  * figure, the match is 1 − |answer − agreement|; the score is the mean
  * across those questions. Unsure, skipped and "no record" questions, and
  * questions where a note replaces the figure, are left out.
@@ -309,7 +322,7 @@ export function consumeArrivedFromQuiz() {
 
 /**
  * How two people's answers compare, question by question, in the order of the
- * questions. Only agree and disagree count as answers. Answers to questions
+ * questions. Only yes and no count as answers. Answers to questions
  * that aren't in the data are ignored, so a forged link can't add any.
  */
 export function compareAnswers(mine, theirs, policies) {

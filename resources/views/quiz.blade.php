@@ -69,11 +69,11 @@
                         <details x-ref="about" x-show="current.description || current.agree_means || current.url" class="group">
                             <summary class="flex cursor-pointer list-none items-center gap-2 text-small text-ink-muted group-open:font-medium group-open:text-ink [&::-webkit-details-marker]:hidden">
                                 <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" class="shrink-0 transition-transform group-open:rotate-90 motion-reduce:transition-none"><path d="M4 2.5L7.5 6L4 9.5" fill="none" stroke="currentColor" stroke-width="1.5" /></svg>
-                                <span class="link group-open:no-underline">About this question and what “agree” means</span>
+                                <span class="link group-open:no-underline">About this question and what “yes” means</span>
                             </summary>
                             <div class="mt-3 flex flex-col gap-2.5 border-l-2 border-rule py-0.5 pl-5 text-[15px] leading-6">
                                 <p x-show="current.description" class="text-ink-muted" x-text="current.description"></p>
-                                <p x-show="current.agree_means" class="text-ink"><span class="font-medium">Agree</span> = <span x-text="current.agree_means"></span></p>
+                                <p x-show="yesMeans" class="text-ink"><span class="font-medium">Yes</span> = <span x-text="yesMeans"></span></p>
                                 <p x-show="current.url"><a x-bind:href="current.url" class="link text-small text-ink-muted">See the votes behind this question</a></p>
                             </div>
                         </details>
@@ -81,12 +81,12 @@
                         <div class="flex flex-col gap-3">
                             <div class="grid grid-cols-2 gap-3">
                                 <button type="button" x-on:click="agree" x-bind:aria-pressed="isSelected('a')" class="group flex h-14 items-center justify-center rounded-md border border-rule-strong px-4 text-[18px] font-medium hover:border-ink aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-ground lg:h-16 lg:justify-between lg:px-6">
-                                    Agree
-                                    <kbd aria-hidden="true" class="hidden rounded-sm border border-rule px-1.5 py-0.5 font-sans text-label font-medium text-ink-muted group-aria-pressed:border-ground/35 group-aria-pressed:text-ground lg:inline-block">A</kbd>
+                                    Yes
+                                    <kbd aria-hidden="true" class="hidden rounded-sm border border-rule px-1.5 py-0.5 font-sans text-label font-medium text-ink-muted group-aria-pressed:border-ground/35 group-aria-pressed:text-ground lg:inline-block">Y</kbd>
                                 </button>
                                 <button type="button" x-on:click="disagree" x-bind:aria-pressed="isSelected('d')" class="group flex h-14 items-center justify-center rounded-md border border-rule-strong px-4 text-[18px] font-medium hover:border-ink aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-ground lg:h-16 lg:justify-between lg:px-6">
-                                    Disagree
-                                    <kbd aria-hidden="true" class="hidden rounded-sm border border-rule px-1.5 py-0.5 font-sans text-label font-medium text-ink-muted group-aria-pressed:border-ground/35 group-aria-pressed:text-ground lg:inline-block">D</kbd>
+                                    No
+                                    <kbd aria-hidden="true" class="hidden rounded-sm border border-rule px-1.5 py-0.5 font-sans text-label font-medium text-ink-muted group-aria-pressed:border-ground/35 group-aria-pressed:text-ground lg:inline-block">N</kbd>
                                 </button>
                             </div>
                             <div class="grid grid-cols-2 gap-3">
@@ -108,7 +108,7 @@
                         </div>
 
                         <p class="hidden text-label text-ink-muted lg:block">
-                            Keyboard: once you've clicked an answer, press <kbd>A</kbd> agree, <kbd>D</kbd> disagree, <kbd>U</kbd> unsure, <kbd>S</kbd> skip, <kbd>&larr;</kbd> previous.
+                            Keyboard: once you've clicked an answer, press <kbd>Y</kbd> yes, <kbd>N</kbd> no, <kbd>U</kbd> unsure, <kbd>S</kbd> skip, <kbd>&larr;</kbd> previous.
                         </p>
                     </section>
                 </template>
@@ -121,7 +121,7 @@
                     <h2 class="eyebrow">How it works</h2>
                     <ol class="flex flex-col gap-4 text-small leading-[21px] text-ink-muted">
                         <li class="flex gap-4 border-t border-rule pt-3"><span class="w-5 shrink-0 font-semibold text-ink">1</span> Every question is linked to real votes in the Legislative Assembly and Council.</li>
-                        <li class="flex gap-4 border-t border-rule pt-3"><span class="w-5 shrink-0 font-semibold text-ink">2</span> Agree, disagree or say you're unsure. Skip anything you like.</li>
+                        <li class="flex gap-4 border-t border-rule pt-3"><span class="w-5 shrink-0 font-semibold text-ink">2</span> Answer yes, no or unsure. Skip anything you like.</li>
                         <li class="flex gap-4 border-t border-rule pt-3"><span class="w-5 shrink-0 font-semibold text-ink">3</span> <span>See how often each party voted your way, with <a href="{{ route('policies.index') }}" class="link text-ink">the evidence behind every answer</a>.</span></li>
                     </ol>
                 </div>

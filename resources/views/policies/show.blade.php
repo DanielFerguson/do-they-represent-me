@@ -63,13 +63,13 @@
                     <div class="flex flex-col gap-3 sm:flex-row lg:gap-6">
                         @if ($policy->arguments_for)
                             <div class="flex flex-1 flex-col gap-1.5 border-l-2 border-rule-strong pl-3.5 lg:gap-2.5 lg:pl-5">
-                                <h3 class="text-[11px] font-semibold uppercase leading-[14px] tracking-label lg:text-label">For “agree”</h3>
+                                <h3 class="text-[11px] font-semibold uppercase leading-[14px] tracking-label lg:text-label">For “yes”</h3>
                                 <x-paragraphs :text="$policy->arguments_for" class="text-small leading-[22px] lg:text-[15px] lg:leading-6" />
                             </div>
                         @endif
                         @if ($policy->arguments_against)
                             <div class="flex flex-1 flex-col gap-1.5 border-l-2 border-rule-strong pl-3.5 lg:gap-2.5 lg:pl-5">
-                                <h3 class="text-[11px] font-semibold uppercase leading-[14px] tracking-label lg:text-label">For “disagree”</h3>
+                                <h3 class="text-[11px] font-semibold uppercase leading-[14px] tracking-label lg:text-label">For “no”</h3>
                                 <x-paragraphs :text="$policy->arguments_against" class="text-small leading-[22px] lg:text-[15px] lg:leading-6" />
                             </div>
                         @endif
@@ -141,7 +141,7 @@
                                 <dd>{{ $division->result }} Ayes {{ $division->ayes_count }}, Noes {{ $division->noes_count }}.</dd>
                             </div>
                             <div class="flex flex-col gap-0.5 border-t border-rule py-2 sm:flex-row sm:gap-4">
-                                <dt class="shrink-0 text-ink-muted sm:w-[140px]">Matches “agree”</dt>
+                                <dt class="shrink-0 text-ink-muted sm:w-[140px]">Matches “yes”</dt>
                                 <dd>{{ $link->direction === App\Enums\VoteValue::Aye ? 'An Aye vote' : 'A No vote' }}</dd>
                             </div>
                             <div class="flex flex-col gap-0.5 border-t border-rule py-2 sm:flex-row sm:gap-4">

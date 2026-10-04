@@ -93,7 +93,7 @@ export function buildCardLayout({ ranked, notEnough, meta, measure }) {
     headlineLines.forEach((line, index) => text('headline', PAD, headlineTop + index * 68 + 52, line, font(600, 64), ink));
 
     const subTop = headlineTop + headlineLines.length * 68 + 24;
-    text('subhead', PAD, subTop + 26, `Based on my ${meta.comparable} agree or disagree answers.`, font(400, 26), muted);
+    text('subhead', PAD, subTop + 26, `Based on my ${meta.comparable} yes or no answers.`, font(400, 26), muted);
 
     const rowsTop = subTop + 34 + 40;
 

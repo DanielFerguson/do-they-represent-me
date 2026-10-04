@@ -25,7 +25,7 @@ Some parties are never given positions:
 
 ## Agreement with a policy
 
-Each linked division says which vote, Aye or No, matches the policy's "agree" answer, and whether it is a **strong** vote. The curators' rule is that second and third readings are strong, and everything else, including reasoned amendments, committee votes and motions, is normal.
+Each linked division says which vote, Aye or No, matches a "yes" answer to the policy's question (the workbook calls it "agree"), and whether it is a **strong** vote. The curators' rule is that second and third readings are strong, and everything else, including reasoned amendments, committee votes and motions, is normal.
 
 For each party and each member, every linked division they could vote in counts as **same**, **differ** or **absent**, and **strong** or **normal** (`AgreementTally`):
 - **For a member:** their own vote. If they held no seat in that house on that day, the division is left out entirely.
@@ -75,10 +75,10 @@ The document is stored exactly as served and named by the SHA-256 of its content
 
 Matching happens in the voter's browser. Answers never leave the device. They are kept in local storage and in the part of a shared link after the `#`, which browsers do not send to servers.
 
-- Each Agree or Disagree answer counts as 1 or 0. For each policy where a party has a score, the match is `1 − |answer − agreement|`.
+- Each Yes or No answer counts as 1 or 0. For each policy where a party has a score, the match is `1 − |answer − agreement|`.
 - A party's overall match is the average across those policies.
 - "Unsure" and "Skip" answers, and policies without a score, are left out.
-- A result needs at least 5 Agree or Disagree answers.
+- A result needs at least 5 Yes or No answers.
 - A party is ranked only if it has a score on at least 3 of the voter's answered questions. Otherwise it is listed separately as having too few shared votes.
 - **Your MPs.** Once the voter chooses a district, the MLA for it and the five MLCs for its region are matched the same way, from their own votes, with the same minimum of 3 shared questions. An MLA has no record on a question voted on only in the Council, and an MLC none on one voted on only in the Assembly. The district is kept in the browser and in the results link (`#a=…&d=district`), like the answers.
 - A party whose figure is replaced by a display note is left out on that question, and the note is shown instead.

@@ -73,7 +73,7 @@ it('says plainly on the methodology page that the questions were drafted and giv
         ->assertSee('A final round of AI reviewers');
 });
 
-it('answers how many published questions put each balanced party on the agree side', function () {
+it('answers how many published questions put each balanced party on the yes side', function () {
     [$levy, $logging] = Policy::factory()->published()->count(2)->create();
     $inReview = Policy::factory()->create();
     $labor = Party::factory()->create(['short_name' => 'ALP', 'display_name' => 'Labor']);
@@ -90,7 +90,7 @@ it('answers how many published questions put each balanced party on the agree si
 
     $response
         ->assertSee('Why only 2 questions?')
-        ->assertSee('Of the 2 questions, the “agree” side includes Greens 1 and Labor 2.')
+        ->assertSee('Of the 2 questions, the “yes” side includes Greens 1 and Labor 2.')
         ->assertDontSee('Legalise Cannabis');
 });
 
